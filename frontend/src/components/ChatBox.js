@@ -36,7 +36,7 @@ export default function ChatBox({ receiver, onClose }) {
 
     const handleSendMessage = async (e) => {
         e.preventDefault();
-        if (!newMessage.trim() || sending) return;
+        if (!newMessage.trim() || sending || !receiver?.id) return;
 
         setSending(true);
         try {

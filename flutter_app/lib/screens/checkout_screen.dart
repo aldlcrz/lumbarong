@@ -60,6 +60,14 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       );
       return;
     }
+    if (_paymentMethod == 'GCash' && _referenceController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please enter your GCash reference number.'),
+        ),
+      );
+      return;
+    }
     final cart = context.read<CartProvider>();
     if (cart.items.isEmpty) {
       ScaffoldMessenger.of(
@@ -162,80 +170,185 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         children: [
           const AppNavBar(),
           Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  TextFormField(
-                    controller: _phoneController,
-                    decoration: const InputDecoration(
-                      labelText: 'Contact Phone',
-                      hintText: '09xx-xxx-xxxx',
-                    ),
-                    keyboardType: TextInputType.phone,
-                  ),
-                  const SizedBox(height: 16),
-                  TextFormField(
-                    controller: _addressController,
-                    decoration: const InputDecoration(
-                      labelText: 'Shipping Address',
-                    ),
-                    maxLines: 2,
-                  ),
-                  const SizedBox(height: 24),
-                  const Text(
-                    'Payment',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
-                  ),
-                  RadioListTile<String>(
-                    title: const Text('GCash'),
-                    value: 'GCash',
-                    groupValue: _paymentMethod,
-                    onChanged: (v) => setState(() => _paymentMethod = v!),
-                  ),
-                  RadioListTile<String>(
-                    title: const Text('COD'),
-                    value: 'COD',
-                    groupValue: _paymentMethod,
-                    onChanged: (v) => setState(() => _paymentMethod = v!),
-                  ),
-                  if (_paymentMethod == 'GCash') ...[
-                    TextFormField(
-                      controller: _referenceController,
-                      decoration: const InputDecoration(
-                        labelText: 'Reference Number',
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 600),
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      TextFormField(
+                        controller: _phoneController,
+                        decoration: const InputDecoration(
+                          labelText: 'Contact Phone',
+                          hintText: '09xx-xxx-xxxx',
+                        ),
+                        keyboardType: TextInputType.phone,
                       ),
-                    ),
-                    const SizedBox(height: 16),
-                    OutlinedButton.icon(
-                      onPressed: _pickImage,
-                      icon: const Icon(Icons.upload),
-                      label: Text(
-                        _receiptFile != null
-                            ? 'Receipt selected'
-                            : 'Upload receipt image',
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: _addressController,
+                        decoration: const InputDecoration(
+                          labelText: 'Shipping Address',
+                        ),
+                        maxLines: 2,
                       ),
-                    ),
-                  ],
-                  const SizedBox(height: 32),
-                  SizedBox(
-                    height: 56,
-                    child: ElevatedButton(
-                      onPressed: _isOrdering ? null : _submitOrder,
-                      child: _isOrdering
-                          ? const SizedBox(
-                              height: 24,
-                              width: 24,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: Colors.white,
+                      const SizedBox(height: 24),
+                      const Text(
+                        'Payment',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                      RadioListTile<String>(
+                        title: const Text('GCash'),
+                        value: 'GCash',
+                        groupValue: _paymentMethod,
+                        onChanged: (v) => setState(() => _paymentMethod = v!),
+                      ),
+                      RadioListTile<String>(
+                        title: const Text('COD'),
+                        value: 'COD',
+                        groupValue: _paymentMethod,
+                        onChanged: (v) => setState(() => _paymentMethod = v!),
+                      ),
+                      if (_paymentMethod == 'GCash') ...[
+                        // Seller GCash Details (Showing for the first item's seller in cart)
+                        if (cart.items.isNotEmpty &&
+                            cart.items.first.product.seller != null) ...[
+                          Container(
+                            margin: const EdgeInsets.only(bottom: 24),
+                            padding: const EdgeInsets.all(20),
+                            decoration: BoxDecoration(
+                              color: Colors.blue.withValues(alpha: 0.05),
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(
+                                color: Colors.blue.withValues(alpha: 0.1),
                               ),
-                            )
-                          : const Text('Place Order'),
-                    ),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                const Text(
+                                  'ARTISAN GCASH SETTLEMENT',
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w900,
+                                    letterSpacing: 1.2,
+                                    color: Colors.blue,
+                                  ),
+                                ),
+                                const SizedBox(height: 12),
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    const Text(
+                                      'Pay to Artisan:',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    Text(
+                                      cart
+                                              .items
+                                              .first
+                                              .product
+                                              .seller!
+                                              .gcashNumber ??
+                                          'N/A',
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w900,
+                                        color: Colors.black87,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                if (cart
+                                        .items
+                                        .first
+                                        .product
+                                        .seller!
+                                        .gcashQrCode !=
+                                    null) ...[
+                                  const SizedBox(height: 16),
+                                  const Text(
+                                    'Scan QR to Pay:',
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w900,
+                                      color: Colors.grey,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Center(
+                                    child: ClipRRect(
+                                      borderRadius: BorderRadius.circular(12),
+                                      child: Image.network(
+                                        cart
+                                            .items
+                                            .first
+                                            .product
+                                            .seller!
+                                            .gcashQrCode!,
+                                        height: 150,
+                                        width: 150,
+                                        fit: BoxFit.cover,
+                                        errorBuilder: (c, e, s) => const Icon(
+                                          Icons.qr_code,
+                                          size: 60,
+                                          color: Colors.grey,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ),
+                        ],
+                        TextFormField(
+                          controller: _referenceController,
+                          decoration: const InputDecoration(
+                            labelText: 'Reference Number',
+                            hintText: 'Enter 13-digit Gcash Reference',
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        OutlinedButton.icon(
+                          onPressed: _pickImage,
+                          icon: const Icon(Icons.upload),
+                          label: Text(
+                            _receiptFile != null
+                                ? 'Receipt selected'
+                                : 'Upload receipt image',
+                          ),
+                        ),
+                      ],
+                      const SizedBox(height: 32),
+                      SizedBox(
+                        height: 56,
+                        child: ElevatedButton(
+                          onPressed: _isOrdering ? null : _submitOrder,
+                          child: _isOrdering
+                              ? const SizedBox(
+                                  height: 24,
+                                  width: 24,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Colors.white,
+                                  ),
+                                )
+                              : const Text('Place Order'),
+                        ),
+                      ),
+                    ],
                   ),
-                ],
+                ),
               ),
             ),
           ),

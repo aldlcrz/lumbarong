@@ -149,90 +149,94 @@ class _SellerProductsScreenState extends State<SellerProductsScreen> {
                         final imageUrl = images.isNotEmpty
                             ? (images.first as Map)['url']?.toString() ?? ''
                             : '';
-                        return Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(14),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.04),
-                                blurRadius: 6,
-                              ),
-                            ],
-                          ),
-                          child: Row(
-                            children: [
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(8),
-                                child: imageUrl.isNotEmpty
-                                    ? Image.network(
-                                        imageUrl,
-                                        width: 60,
-                                        height: 60,
-                                        fit: BoxFit.cover,
-                                        errorBuilder: (_, _, _) => Container(
+                        return GestureDetector(
+                          onTap: () => context.push('/products/${p['id']}'),
+                          child: Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(14),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.04),
+                                  blurRadius: 6,
+                                ),
+                              ],
+                            ),
+                            child: Row(
+                              children: [
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: imageUrl.isNotEmpty
+                                      ? Image.network(
+                                          imageUrl,
+                                          width: 60,
+                                          height: 60,
+                                          fit: BoxFit.cover,
+                                          errorBuilder: (_, _, _) => Container(
+                                            width: 60,
+                                            height: 60,
+                                            color: const Color(0xFFF3F4F6),
+                                            child: const Icon(
+                                              Icons.image_not_supported,
+                                              size: 24,
+                                              color: AppTheme.textMuted,
+                                            ),
+                                          ),
+                                        )
+                                      : Container(
                                           width: 60,
                                           height: 60,
                                           color: const Color(0xFFF3F4F6),
                                           child: const Icon(
-                                            Icons.image_not_supported,
+                                            Icons.image,
                                             size: 24,
                                             color: AppTheme.textMuted,
                                           ),
                                         ),
-                                      )
-                                    : Container(
-                                        width: 60,
-                                        height: 60,
-                                        color: const Color(0xFFF3F4F6),
-                                        child: const Icon(
-                                          Icons.image,
-                                          size: 24,
-                                          color: AppTheme.textMuted,
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        p['name']?.toString() ?? '',
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.w700,
+                                          color: AppTheme.textPrimary,
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                      Text(
+                                        '₱${p['price']}',
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.w800,
+                                          color: AppTheme.primary,
                                         ),
                                       ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      p['name']?.toString() ?? '',
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.w700,
-                                        color: AppTheme.textPrimary,
+                                      Text(
+                                        'Stock: ${p['stock']}',
+                                        style: const TextStyle(
+                                          fontSize: 11,
+                                          color: AppTheme.textSecondary,
+                                        ),
                                       ),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                    Text(
-                                      '₱${p['price']}',
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.w800,
-                                        color: AppTheme.primary,
-                                      ),
-                                    ),
-                                    Text(
-                                      'Stock: ${p['stock']}',
-                                      style: const TextStyle(
-                                        fontSize: 11,
-                                        color: AppTheme.textSecondary,
-                                      ),
-                                    ),
-                                  ],
+                                    ],
+                                  ),
                                 ),
-                              ),
-                              IconButton(
-                                icon: const Icon(
-                                  Icons.delete_outline,
-                                  color: Colors.red,
+                                IconButton(
+                                  icon: const Icon(
+                                    Icons.delete_outline,
+                                    color: Colors.red,
+                                  ),
+                                  onPressed: () =>
+                                      _deleteProduct(p['id'].toString()),
                                 ),
-                                onPressed: () =>
-                                    _deleteProduct(p['id'].toString()),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                         );
                       },

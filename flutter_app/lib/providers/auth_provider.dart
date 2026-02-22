@@ -26,7 +26,9 @@ class AuthProvider with ChangeNotifier {
       final token = prefs.getString('token');
       final userJson = prefs.getString('user');
       if (token != null && userJson != null && token.isNotEmpty) {
-        _user = UserModel.fromJson(Map<String, dynamic>.from(jsonDecode(userJson) as Map));
+        _user = UserModel.fromJson(
+          Map<String, dynamic>.from(jsonDecode(userJson) as Map),
+        );
       } else {
         _user = null;
       }
@@ -39,7 +41,10 @@ class AuthProvider with ChangeNotifier {
 
   Future<Map<String, dynamic>> login(String email, String password) async {
     try {
-      final res = await _api.post('/auth/login', data: {'email': email, 'password': password});
+      final res = await _api.post(
+        '/auth/login',
+        data: {'email': email, 'password': password},
+      );
       final data = res.data as Map<String, dynamic>;
       final token = data['token'] as String;
       final userMap = Map<String, dynamic>.from(data['user'] as Map);
@@ -51,7 +56,13 @@ class AuthProvider with ChangeNotifier {
     } on DioException catch (e) {
       String message = 'Login failed';
       final data = e.response?.data;
-      if (data is Map && data['message'] != null) message = data['message'].toString();
+      if (data is Map && data['message'] != null) {
+        message = data['message'].toString();
+      } else if (data is String && data.isNotEmpty) {
+        message = data;
+      } else if (e.message != null) {
+        message = e.message!;
+      }
       return {'success': false, 'message': message};
     }
   }
@@ -66,11 +77,20 @@ class AuthProvider with ChangeNotifier {
       await _api.setToken(token);
       await _api.setUser(userMap);
       notifyListeners();
-      return {'success': true, 'message': data['message']?.toString() ?? 'Registration successful'};
+      return {
+        'success': true,
+        'message': data['message']?.toString() ?? 'Registration successful',
+      };
     } on DioException catch (e) {
       String message = 'Registration failed';
       final data = e.response?.data;
-      if (data is Map && data['message'] != null) message = data['message'].toString();
+      if (data is Map && data['message'] != null) {
+        message = data['message'].toString();
+      } else if (data is String && data.isNotEmpty) {
+        message = data;
+      } else if (e.message != null) {
+        message = e.message!;
+      }
       return {'success': false, 'message': message};
     }
   }

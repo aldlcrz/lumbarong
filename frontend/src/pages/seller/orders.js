@@ -346,7 +346,10 @@ export default function SellerOrders() {
     if (authLoading || !user) return null;
 
     const filteredOrders = orders.filter(order => {
-        const matchesFilter = filter === 'All' || order.status === filter;
+        const matchesFilter = filter === 'All' ||
+            (filter === 'Processing' && (order.status === 'Pending' || order.status === 'Processing')) ||
+            (filter === 'Shipped' && ['Shipped', 'To Be Delivered', 'Delivered'].includes(order.status)) ||
+            order.status === filter;
         const matchesSearch = order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
             order.customer?.name?.toLowerCase().includes(searchTerm.toLowerCase());
         return matchesFilter && matchesSearch;
@@ -354,15 +357,21 @@ export default function SellerOrders() {
 
     const getStatusCounts = () => {
         const counts = { All: orders.length };
-        ['Pending', 'To Ship', 'Shipped', 'Delivered', 'Completed', 'Return Requested', 'Cancelled'].forEach(s => {
-            counts[s] = orders.filter(o => o.status === s).length;
+        ['Processing', 'To Ship', 'Shipped', 'Completed', 'Return Requested', 'Cancelled'].forEach(s => {
+            if (s === 'Processing') {
+                counts[s] = orders.filter(o => o.status === 'Pending' || o.status === 'Processing').length;
+            } else if (s === 'Shipped') {
+                counts[s] = orders.filter(o => ['Shipped', 'To Be Delivered', 'Delivered'].includes(o.status)).length;
+            } else {
+                counts[s] = orders.filter(o => o.status === s).length;
+            }
         });
         return counts;
     };
 
     const statusCounts = getStatusCounts();
 
-    const orderStages = ['Pending', 'Processing', 'To Ship', 'Shipped', 'Delivered', 'Completed'];
+    const orderStages = ['Processing', 'To Ship', 'Shipped', 'Completed'];
 
     const OrderStatusStepper = ({ currentStatus }) => {
         const currentIndex = orderStages.indexOf(currentStatus);
@@ -444,7 +453,7 @@ export default function SellerOrders() {
             );
         }
 
-        if (status === 'Shipped') {
+        if (status === 'Shipped' || status === 'To Be Delivered') {
             return (
                 <button
                     onClick={(e) => { e.stopPropagation(); updateStatus(order.id, 'Delivered'); }}
@@ -469,7 +478,9 @@ export default function SellerOrders() {
                 status === 'Cancelled' ? 'bg-gray-50 text-gray-400 border-gray-100' :
                     'bg-white text-gray-500 border-gray-100'
                 }`}>
-                {status}
+                {status === 'Pending' ? 'Processing' :
+                    ['To Be Delivered', 'Delivered'].includes(status) ? 'Shipped' :
+                        status}
             </div>
         );
     };
@@ -519,7 +530,7 @@ export default function SellerOrders() {
                 ) : (
                     <div className="space-y-6">
                         <div className="flex gap-3 overflow-x-auto pb-6 no-scrollbar">
-                            {['All', 'Pending', 'To Ship', 'Shipped', 'Delivered', 'Completed', 'Return Requested', 'Cancelled'].map(f => (
+                            {['All', 'Processing', 'To Ship', 'Shipped', 'Completed', 'Return Requested', 'Cancelled'].map(f => (
                                 <button
                                     key={f}
                                     onClick={() => setFilter(f)}

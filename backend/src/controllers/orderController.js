@@ -8,7 +8,7 @@ const { Op } = require('sequelize');
 exports.createOrder = async (req, res) => {
     const t = await sequelize.transaction();
     try {
-        const { items, totalAmount, paymentMethod, shippingAddress, paymentDetails } = req.body;
+        const { items, totalAmount, paymentMethod, shippingAddress, referenceNumber, receiptImage } = req.body;
 
         if (!items || items.length === 0) {
             return res.status(400).json({ message: 'No items in order' });
@@ -36,8 +36,8 @@ exports.createOrder = async (req, res) => {
             totalAmount,
             paymentMethod,
             shippingAddress,
-            referenceNumber: paymentDetails?.referenceNumber,
-            receiptImage: paymentDetails?.receiptImage,
+            referenceNumber,
+            receiptImage,
             isPaymentVerified: false,
             status: 'Pending'
         }, { transaction: t });
@@ -200,8 +200,8 @@ exports.requestCancellation = async (req, res) => {
             return res.status(403).json({ message: 'Not authorized' });
         }
 
-        if (order.status !== 'Pending') {
-            return res.status(400).json({ message: 'Order can only be cancelled while pending' });
+        if (['Shipped', 'To Be Delivered', 'Delivered', 'Completed'].includes(order.status)) {
+            return res.status(400).json({ message: 'Order cannot be cancelled once it has been shipped.' });
         }
 
         await order.update({ status: 'Cancellation Requested' });
@@ -288,16 +288,15 @@ exports.submitReview = async (req, res) => {
             return res.status(403).json({ message: 'Unauthorized' });
         }
 
-        if (order.status !== 'Delivered') {
-            return res.status(400).json({ message: 'Order must be delivered before rating' });
+        if (order.status !== 'Completed') {
+            return res.status(400).json({ message: 'Order must be completed before rating' });
         }
 
         await order.update({
             rating,
             reviewComment: comment,
             reviewImages: images,
-            reviewCreatedAt: new Date(),
-            status: 'Completed'
+            reviewCreatedAt: new Date()
         });
 
         for (let item of order.items) {
@@ -306,7 +305,7 @@ exports.submitReview = async (req, res) => {
             }
         }
 
-        res.json({ message: 'Review submitted and order marked as completed', order });
+        res.json({ message: 'Review submitted successfully', order });
     } catch (error) {
         res.status(500).json({ message: 'Server error', error: error.message });
     }
@@ -350,3 +349,29 @@ exports.submitReturnRequest = async (req, res) => {
         res.status(500).json({ message: 'Server error', error: error.message });
     }
 };
+
+exports.completeOrder = async (req, res) => {
+    try {
+        const order = await Order.findByPk(req.params.id);
+        if (!order) return res.status(404).json({ message: 'Order not found' });
+
+        if (order.customerId !== req.user.userId) {
+            return res.status(403).json({ message: 'Not authorized' });
+        }
+
+        if (order.status !== 'Delivered') {
+            return res.status(400).json({ message: 'Order must be delivered before marking as completed' });
+        }
+
+        await order.update({ status: 'Completed' });
+
+        if (req.app.get('io')) {
+            req.app.get('io').emit('dashboard_update');
+        }
+
+        res.json({ message: 'Order marked as completed', order });
+    } catch (error) {
+        res.status(500).json({ message: 'Server error', error: error.message });
+    }
+};
+

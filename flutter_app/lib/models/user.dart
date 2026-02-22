@@ -10,6 +10,7 @@ class UserModel {
   final bool isVerified;
   final String? profileImage;
   final String? gcashNumber;
+  final String? gcashQrCode;
 
   UserModel({
     required this.id,
@@ -23,6 +24,7 @@ class UserModel {
     this.isVerified = false,
     this.profileImage,
     this.gcashNumber,
+    this.gcashQrCode,
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
@@ -38,20 +40,22 @@ class UserModel {
       isVerified: json['isVerified'] as bool? ?? false,
       profileImage: json['profileImage'] as String?,
       gcashNumber: json['gcashNumber'] as String?,
+      gcashQrCode: json['gcashQrCode'] as String?,
     );
   }
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'name': name,
-        'email': email,
-        'role': role,
-        'phone': phone,
-        'address': address,
-        'shopName': shopName,
-        'shopDescription': shopDescription,
-        'isVerified': isVerified,
-        'profileImage': profileImage,
-        'gcashNumber': gcashNumber,
-      };
+    'id': id,
+    'name': name,
+    'email': email,
+    'role': role,
+    'phone': phone,
+    'address': address,
+    'shopName': shopName,
+    'shopDescription': shopDescription,
+    'isVerified': isVerified,
+    'profileImage': profileImage,
+    'gcashNumber': gcashNumber,
+    'gcashQrCode': gcashQrCode,
+  };
 }

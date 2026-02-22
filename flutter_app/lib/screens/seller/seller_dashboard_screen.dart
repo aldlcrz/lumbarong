@@ -143,8 +143,11 @@ class _SellerDashboardScreenState extends State<SellerDashboardScreen> {
                           color: AppTheme.primary,
                         ),
                       )
-                    else
+                    else ...[
                       _StatsRow(stats: _stats),
+                      const SizedBox(height: 24),
+                      _SalesFunnel(stats: _stats),
+                    ],
                     const SizedBox(height: 24),
                     const Text(
                       'Quick Actions',
@@ -200,6 +203,196 @@ class _SellerDashboardScreenState extends State<SellerDashboardScreen> {
   }
 }
 
+class _SalesFunnel extends StatelessWidget {
+  final Map<String, dynamic>? stats;
+  const _SalesFunnel({this.stats});
+
+  @override
+  Widget build(BuildContext context) {
+    final int inquiries = stats?['inquiryCount'] ?? 0;
+    final int orders = stats?['totalOrders'] ?? 0;
+    final int completed = stats?['deliveredOrders'] ?? 0;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: Colors.grey.shade100),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Artisan Registry Funnel',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w900,
+              fontStyle: FontStyle.italic,
+              letterSpacing: -0.5,
+            ),
+          ),
+          const SizedBox(height: 4),
+          const Text(
+            'Inquiry to sealed heritage journey.',
+            style: TextStyle(
+              fontSize: 12,
+              color: AppTheme.textSecondary,
+              fontStyle: FontStyle.italic,
+            ),
+          ),
+          const SizedBox(height: 24),
+          _FunnelStep(
+            label: 'Heritage Inquiries',
+            count: inquiries,
+            widthFactor: 1.0,
+            color: Colors.black,
+          ),
+          const SizedBox(height: 12),
+          _FunnelStep(
+            label: 'Registry Orders',
+            count: orders,
+            widthFactor: 0.8,
+            color: AppTheme.primary,
+          ),
+          const SizedBox(height: 12),
+          _FunnelStep(
+            label: 'Sealed Heritage',
+            count: completed,
+            widthFactor: 0.6,
+            color: const Color(0xFF43BF8E),
+          ),
+          const SizedBox(height: 24),
+          Row(
+            children: [
+              Expanded(
+                child: _ConversionLabel(
+                  label: 'Inquiry → Order',
+                  rate: inquiries > 0 ? (orders / inquiries * 100).round() : 0,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _ConversionLabel(
+                  label: 'Order → Success',
+                  rate: orders > 0 ? (completed / orders * 100).round() : 0,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _FunnelStep extends StatelessWidget {
+  final String label;
+  final int count;
+  final double widthFactor;
+  final Color color;
+
+  const _FunnelStep({
+    required this.label,
+    required this.count,
+    required this.widthFactor,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return FractionallySizedBox(
+      widthFactor: widthFactor,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        decoration: BoxDecoration(
+          color: color,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: color.withValues(alpha: 0.2),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              label.toUpperCase(),
+              style: TextStyle(
+                color: Colors.white.withValues(alpha: 0.7),
+                fontSize: 10,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 1.2,
+              ),
+            ),
+            Text(
+              '$count',
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 20,
+                fontWeight: FontWeight.w900,
+                fontStyle: FontStyle.italic,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ConversionLabel extends StatelessWidget {
+  final String label;
+  final int rate;
+
+  const _ConversionLabel({required this.label, required this.rate});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppTheme.background,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey.shade100),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label.toUpperCase(),
+            style: const TextStyle(
+              fontSize: 8,
+              fontWeight: FontWeight.w900,
+              color: AppTheme.textSecondary,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            '$rate%',
+            style: const TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.w900,
+              fontStyle: FontStyle.italic,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _StatsRow extends StatelessWidget {
   final Map<String, dynamic>? stats;
   const _StatsRow({this.stats});
@@ -210,17 +403,8 @@ class _StatsRow extends StatelessWidget {
       children: [
         Expanded(
           child: _MiniCard(
-            label: 'Products',
-            value: '${stats?['productCount'] ?? 0}',
-            icon: Icons.inventory_2,
-            color: const Color(0xFF43BF8E),
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: _MiniCard(
-            label: 'Orders',
-            value: '${stats?['orderCount'] ?? 0}',
+            label: 'Registry Orders',
+            value: '${stats?['totalOrders'] ?? 0}',
             icon: Icons.shopping_bag,
             color: const Color(0xFF6C63FF),
           ),
@@ -228,13 +412,22 @@ class _StatsRow extends StatelessWidget {
         const SizedBox(width: 12),
         Expanded(
           child: _MiniCard(
-            label: 'Revenue',
-            value: '₱${stats?['totalRevenue'] ?? 0}',
+            label: 'Artisan Revenue',
+            value: '₱${((stats?['revenue'] ?? 0) as num).toLocaleString()}',
             icon: Icons.payments,
             color: AppTheme.primary,
           ),
         ),
       ],
+    );
+  }
+}
+
+extension NumberFormatting on num {
+  String toLocaleString() {
+    return toStringAsFixed(0).replaceAllMapped(
+      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+      (Match m) => '${m[1]},',
     );
   }
 }
@@ -255,30 +448,45 @@ class _MiniCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(20),
         boxShadow: [
-          BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 8),
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
         ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, color: color, size: 20),
-          const SizedBox(height: 6),
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(icon, color: color, size: 20),
+          ),
+          const SizedBox(height: 12),
           Text(
             value,
             style: TextStyle(
-              fontSize: 16,
+              fontSize: 18,
               fontWeight: FontWeight.w900,
               color: color,
             ),
           ),
           Text(
             label,
-            style: const TextStyle(fontSize: 10, color: AppTheme.textSecondary),
+            style: const TextStyle(
+              fontSize: 10,
+              color: AppTheme.textSecondary,
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ],
       ),

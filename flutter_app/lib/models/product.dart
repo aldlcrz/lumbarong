@@ -11,6 +11,8 @@ class ProductModel {
   final UserModel? seller;
   final List<ProductImageModel> images;
   final List<String>? availableSizes;
+  final List<String>? availableColors;
+  final int leadTime;
   final List<ProductRatingModel>? ratings;
 
   ProductModel({
@@ -24,6 +26,8 @@ class ProductModel {
     this.seller,
     this.images = const [],
     this.availableSizes,
+    this.availableColors,
+    required this.leadTime,
     this.ratings,
   });
 
@@ -55,7 +59,13 @@ class ProductModel {
     List<String>? sizes;
     if (json['availableSizes'] != null) {
       sizes = (json['availableSizes'] as List)
-          .map((e) => e.toString())
+          .map((e) => (e as Map)['size']?.toString() ?? e.toString())
+          .toList();
+    }
+    List<String>? colors;
+    if (json['availableColors'] != null) {
+      colors = (json['availableColors'] as List)
+          .map((e) => (e as Map)['color']?.toString() ?? e.toString())
           .toList();
     }
     return ProductModel(
@@ -71,6 +81,8 @@ class ProductModel {
       seller: seller,
       images: imgs,
       availableSizes: sizes,
+      availableColors: colors,
+      leadTime: json['leadTime'] as int? ?? 3,
       ratings: rates,
     );
   }

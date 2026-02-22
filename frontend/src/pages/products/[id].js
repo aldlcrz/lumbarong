@@ -7,7 +7,7 @@ import { useAuth } from '@/context/AuthContext';
 import Navbar from '@/components/Navbar';
 import ChatBox from '@/components/ChatBox';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ShoppingCart, Star, ShieldCheck, Truck, ArrowLeft, X, ZoomIn, ChevronLeft, ChevronRight, Edit3, LayoutDashboard, MessageSquare, Heart } from 'lucide-react';
+import { ShoppingCart, Star, ShieldCheck, Truck, ArrowLeft, X, ZoomIn, ChevronLeft, ChevronRight, Edit3, LayoutDashboard, MessageSquare, Heart, Clock } from 'lucide-react';
 import { io } from 'socket.io-client';
 
 const socket = io(process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:5000');
@@ -20,8 +20,8 @@ export default function ProductDetails() {
     const [quantity, setQuantity] = useState(1);
     const [activeImg, setActiveImg] = useState(0);
     const [isZoomed, setIsZoomed] = useState(false);
-    const [selectedColor, setSelectedColor] = useState('Classic White');
-    const [selectedSize, setSelectedSize] = useState('M');
+    const [selectedColor, setSelectedColor] = useState('');
+    const [selectedSize, setSelectedSize] = useState('');
     const [showChat, setShowChat] = useState(false);
     const [isAdding, setIsAdding] = useState(false);
     const [isWishlisted, setIsWishlisted] = useState(false);
@@ -32,7 +32,10 @@ export default function ProductDetails() {
         if (id) {
             api.get(`/products/${id}`)
                 .then(res => {
-                    setProduct(res.data);
+                    const prod = res.data;
+                    setProduct(prod);
+                    if (prod.availableColors?.length > 0) setSelectedColor(prod.availableColors[0].color);
+                    if (prod.availableSizes?.length > 0) setSelectedSize(prod.availableSizes[0].size);
                     setLoading(false);
                 })
                 .catch(err => {
@@ -93,8 +96,8 @@ export default function ProductDetails() {
     if (loading || authLoading) return <div className="flex justify-center items-center min-h-screen text-red-600 font-bold uppercase tracking-widest text-xs">Authenticating Artisan Registry...</div>;
     if (!product) return <div className="min-h-screen flex items-center justify-center">Product not found.</div>;
 
-    const colors = ['Classic White', 'Ivory Cream', 'Midnight Black', 'Imperial Gold', 'Deep Emerald'];
-    const sizes = ['S', 'M', 'L', 'XL', 'XXL', '3XL', 'Custom'];
+    const colors = product.availableColors?.map(c => c.color) || [];
+    const sizes = product.availableSizes?.map(s => s.size) || [];
 
     return (
         <div className="min-h-screen bg-[#f5f5f5]">
@@ -201,12 +204,12 @@ export default function ProductDetails() {
 
                         {/* Order Attributes */}
                         <div className="space-y-6 px-1">
-                            {/* Shop Vouchers */}
+                            {/* Production Lead Time */}
                             <div className="flex items-start gap-12">
-                                <span className="text-sm text-gray-500 w-24 pt-1">Shop Vouchers</span>
-                                <div className="flex gap-2">
-                                    <span className="bg-red-50 text-red-500 text-[10px] px-2 py-0.5 border border-dashed border-red-500">₱100 OFF</span>
-                                    <span className="bg-red-50 text-red-500 text-[10px] px-2 py-0.5 border border-dashed border-red-500">₱500 OFF</span>
+                                <span className="text-sm text-gray-500 w-24 pt-1">Lead Time</span>
+                                <div className="flex items-center gap-2 text-amber-600 font-bold">
+                                    <Clock size={16} />
+                                    <span className="text-sm">Ready in {product.leadTime || 3} Days</span>
                                 </div>
                             </div>
 
@@ -216,9 +219,8 @@ export default function ProductDetails() {
                                 <div className="space-y-2">
                                     <div className="flex items-center gap-3">
                                         <Truck size={16} className="text-green-600" />
-                                        <span className="text-sm text-gray-800 font-medium italic">Guaranteed to get by 20 - 23 Feb</span>
+                                        <span className="text-sm text-gray-800 font-medium italic">Standard Delivery Service</span>
                                     </div>
-                                    <p className="text-[10px] text-gray-400 pl-7 italic">Get a ₱50 voucher if your order arrives late.</p>
                                 </div>
                             </div>
 

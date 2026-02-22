@@ -19,7 +19,7 @@ class _SellerOrdersScreenState extends State<SellerOrdersScreen>
   List<Map<String, dynamic>> _orders = [];
   bool _loading = true;
 
-  static const _tabs = ['All', 'Pending', 'Processing', 'Shipped', 'Delivered'];
+  static const _tabs = ['All', 'Processing', 'To Ship', 'Shipped', 'Completed'];
 
   @override
   void initState() {
@@ -49,15 +49,21 @@ class _SellerOrdersScreenState extends State<SellerOrdersScreen>
     setState(() => _loading = false);
   }
 
-  List<Map<String, dynamic>> _filtered(String status) {
-    if (status == 'All') return _orders;
-    return _orders
-        .where(
-          (o) =>
-              (o['status']?.toString() ?? '').toLowerCase() ==
-              status.toLowerCase(),
-        )
-        .toList();
+  List<Map<String, dynamic>> _filtered(String tabLabel) {
+    if (tabLabel == 'All') return _orders;
+    return _orders.where((o) {
+      final status = (o['status']?.toString() ?? '').toLowerCase();
+      final target = tabLabel.toLowerCase();
+      if (target == 'processing' &&
+          (status == 'pending' || status == 'processing')) {
+        return true;
+      }
+      if (target == 'shipped' &&
+          ['shipped', 'to be delivered', 'delivered'].contains(status)) {
+        return true;
+      }
+      return status == target;
+    }).toList();
   }
 
   Future<void> _updateStatus(String orderId, String status) async {
@@ -160,12 +166,15 @@ class _OrderCard extends StatelessWidget {
   Color _statusColor(String status) {
     switch (status.toLowerCase()) {
       case 'pending':
-        return Colors.orange;
       case 'processing':
         return const Color(0xFF6C63FF);
+      case 'to ship':
+        return Colors.indigo;
       case 'shipped':
-        return Colors.blue;
+      case 'to be delivered':
       case 'delivered':
+        return Colors.blue;
+      case 'completed':
         return const Color(0xFF43BF8E);
       case 'cancelled':
         return Colors.red;
@@ -209,7 +218,14 @@ class _OrderCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
-                  status.toUpperCase(),
+                  status == 'pending'
+                      ? 'PROCESSING'
+                      : [
+                          'to be delivered',
+                          'delivered',
+                        ].contains(status.toLowerCase())
+                      ? 'SHIPPED'
+                      : status.toUpperCase(),
                   style: TextStyle(
                     fontSize: 10,
                     fontWeight: FontWeight.w800,

@@ -1,4 +1,4 @@
-const { Product, ProductImage, ProductSize, ProductRating } = require('../models/Product');
+const { Product, ProductImage, ProductSize, ProductColor, ProductRating } = require('../models/Product');
 const User = require('../models/User');
 const sequelize = require('../config/database');
 const { Op } = require('sequelize');
@@ -25,9 +25,10 @@ exports.getProducts = async (req, res) => {
         const products = await Product.findAll({
             where,
             include: [
-                { model: User, as: 'seller', attributes: ['name', 'shopName', 'gcashNumber', 'profileImage', 'createdAt', 'isVerified'] },
+                { model: User, as: 'seller', attributes: ['name', 'shopName', 'gcashNumber', 'gcashQrCode', 'profileImage', 'createdAt', 'isVerified'] },
                 { model: ProductImage, as: 'images' },
                 { model: ProductSize, as: 'availableSizes' },
+                { model: ProductColor, as: 'availableColors' },
                 { model: ProductRating, as: 'ratings' }
             ]
         });
@@ -42,9 +43,10 @@ exports.getProductById = async (req, res) => {
     try {
         const product = await Product.findByPk(req.params.id, {
             include: [
-                { model: User, as: 'seller', attributes: ['name', 'shopName', 'gcashNumber', 'profileImage', 'createdAt', 'isVerified'] },
+                { model: User, as: 'seller', attributes: ['name', 'shopName', 'gcashNumber', 'gcashQrCode', 'profileImage', 'createdAt', 'isVerified'] },
                 { model: ProductImage, as: 'images' },
                 { model: ProductSize, as: 'availableSizes' },
+                { model: ProductColor, as: 'availableColors' },
                 { model: ProductRating, as: 'ratings', include: [{ model: User, as: 'reviewer', attributes: ['name'] }] }
             ]
         });
@@ -69,9 +71,14 @@ exports.createProduct = async (req, res) => {
             return res.status(403).json({ message: 'Your shop is pending approval. You cannot list products yet.' });
         }
 
-        const { images, name, sizes, description, price, stock, category } = req.body;
+        const { images, name, sizes, colors, description, price, stock, category, leadTime, gcashNumber, gcashQrCode } = req.body;
         if (!name) return res.status(400).json({ message: 'Product name is required.' });
         if (!images || images.length < 3) return res.status(400).json({ message: 'Minimum 3 images required.' });
+
+        // Update User's GCash details if provided
+        if (gcashNumber || gcashQrCode) {
+            await user.update({ gcashNumber, gcashQrCode }, { transaction: t });
+        }
 
         const product = await Product.create({
             name,
@@ -79,6 +86,7 @@ exports.createProduct = async (req, res) => {
             price,
             stock,
             category,
+            leadTime: leadTime || 3,
             sellerId
         }, { transaction: t });
 
@@ -98,11 +106,23 @@ exports.createProduct = async (req, res) => {
             );
         }
 
+        // Add colors
+        if (colors && colors.length > 0) {
+            await ProductColor.bulkCreate(
+                colors.map(color => ({ color, ProductId: product.id })),
+                { transaction: t }
+            );
+        }
+
         await t.commit();
 
         // Return full product
         const createdProduct = await Product.findByPk(product.id, {
-            include: [{ model: ProductImage, as: 'images' }, { model: ProductSize, as: 'availableSizes' }]
+            include: [
+                { model: ProductImage, as: 'images' },
+                { model: ProductSize, as: 'availableSizes' },
+                { model: ProductColor, as: 'availableColors' }
+            ]
         });
         res.status(201).json(createdProduct);
     } catch (error) {
@@ -123,7 +143,7 @@ exports.updateProduct = async (req, res) => {
             return res.status(403).json({ message: 'Not authorized' });
         }
 
-        const { images, sizes, ...rest } = req.body;
+        const { images, sizes, colors, ...rest } = req.body;
         await product.update(rest, { transaction: t });
 
         if (images) {
@@ -142,9 +162,21 @@ exports.updateProduct = async (req, res) => {
             );
         }
 
+        if (colors) {
+            await ProductColor.destroy({ where: { ProductId: product.id }, transaction: t });
+            await ProductColor.bulkCreate(
+                colors.map(color => ({ color, ProductId: product.id })),
+                { transaction: t }
+            );
+        }
+
         await t.commit();
         const updatedProduct = await Product.findByPk(product.id, {
-            include: [{ model: ProductImage, as: 'images' }, { model: ProductSize, as: 'availableSizes' }]
+            include: [
+                { model: ProductImage, as: 'images' },
+                { model: ProductSize, as: 'availableSizes' },
+                { model: ProductColor, as: 'availableColors' }
+            ]
         });
         res.json(updatedProduct);
     } catch (error) {

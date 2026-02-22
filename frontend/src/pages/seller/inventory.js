@@ -216,7 +216,7 @@ export default function InventoryPage() {
                                                 <span className="text-[8px] font-black uppercase tracking-widest text-gray-400">{product.category}</span>
                                             </div>
                                             <h3 className="text-xl font-black text-gray-900 tracking-tight">{product.name}</h3>
-                                            <p className="text-xs text-gray-400 font-medium italic mb-3">SKU: {product.id?.toString().slice(-8).toUpperCase() || 'N/A'}</p>
+                                            <p className="text-xs text-gray-400 font-medium italic mb-3">SKU: {product.id?.toString()?.slice(-8).toUpperCase() || 'N/A'}</p>
 
                                             {/* Sales Funnel */}
                                             <div className="flex items-center gap-1">

@@ -159,7 +159,7 @@ function ReviewModal({ orderId, onClose, onSuccess }) {
                 className="bg-white rounded-[3rem] p-10 max-w-lg w-full shadow-2xl"
             >
                 <h3 className="text-3xl font-black text-gray-900 mb-2 italic uppercase tracking-tighter">Rate Your Artwork</h3>
-                <p className="text-gray-500 font-medium mb-8 italic">Mark your order as complete by rating the craftsmanship.</p>
+                <p className="text-gray-500 font-medium mb-8 italic">Share your thoughts on the artisan's craftsmanship.</p>
 
                 <form onSubmit={handleSubmit} className="space-y-6">
                     <div className="flex justify-center gap-2 mb-6">
@@ -208,7 +208,7 @@ function ReviewModal({ orderId, onClose, onSuccess }) {
                     <div className="flex gap-4 pt-4">
                         <button type="button" onClick={onClose} className="flex-1 py-4 rounded-2xl border border-gray-100 font-black text-[10px] uppercase tracking-widest text-gray-400 hover:bg-gray-50">Later</button>
                         <button type="submit" disabled={uploading} className="flex-1 py-4 rounded-2xl bg-red-600 text-white font-black text-[10px] uppercase tracking-widest hover:bg-black transition-all shadow-xl shadow-red-100">
-                            {uploading ? 'Processing...' : 'Complete Order'}
+                            {uploading ? 'Processing...' : 'Submit Review'}
                         </button>
                     </div>
                 </form>
@@ -354,26 +354,39 @@ export default function MyOrders() {
         }
     };
 
+    const handleCompleteOrder = async (orderId) => {
+        if (!confirm('Have you received your order and are you satisfied with the quality?')) return;
+        try {
+            await api.post(`/orders/${orderId}/complete`);
+            await fetchOrders();
+        } catch (err) {
+            alert(err.response?.data?.message || 'Failed to complete order');
+        }
+    };
+
     if (authLoading || !user) return null;
 
-    const filteredOrders = orders.filter(o =>
-        filter === 'All' || o.status === filter
-    );
+    const filteredOrders = orders.filter(o => {
+        if (filter === 'All') return true;
+        if (filter === 'Processing') return o.status === 'Pending' || o.status === 'Processing';
+        if (filter === 'Shipped') return ['Shipped', 'To Be Delivered', 'Delivered'].includes(o.status);
+        return o.status === filter;
+    });
 
     const statusMap = {
         'Pending': { icon: Clock, color: 'text-amber-500', bg: 'bg-amber-50', border: 'border-amber-100', step: 0 },
-        'Processing': { icon: Package, color: 'text-blue-500', bg: 'bg-blue-50', border: 'border-blue-100', step: 1 },
-        'To Ship': { icon: Package, color: 'text-indigo-500', bg: 'bg-indigo-50', border: 'border-indigo-100', step: 2 },
-        'Shipped': { icon: Truck, color: 'text-purple-500', bg: 'bg-purple-50', border: 'border-purple-100', step: 3 },
-        'To Be Delivered': { icon: Truck, color: 'text-cyan-500', bg: 'bg-cyan-50', border: 'border-cyan-100', step: 4 },
-        'Delivered': { icon: CheckCircle2, color: 'text-green-500', bg: 'bg-green-50', border: 'border-green-100', step: 5 },
-        'Completed': { icon: CheckCircle2, color: 'text-red-600', bg: 'bg-red-50', border: 'border-red-100', step: 5 },
+        'Processing': { icon: Package, color: 'text-blue-500', bg: 'bg-blue-50', border: 'border-blue-100', step: 0 },
+        'To Ship': { icon: Package, color: 'text-indigo-500', bg: 'bg-indigo-50', border: 'border-indigo-100', step: 1 },
+        'Shipped': { icon: Truck, color: 'text-purple-500', bg: 'bg-purple-50', border: 'border-purple-100', step: 2 },
+        'To Be Delivered': { icon: Truck, color: 'text-cyan-500', bg: 'bg-cyan-50', border: 'border-cyan-100', step: 2 },
+        'Delivered': { icon: CheckCircle2, color: 'text-green-500', bg: 'bg-green-50', border: 'border-green-100', step: 2 },
+        'Completed': { icon: CheckCircle2, color: 'text-red-600', bg: 'bg-red-50', border: 'border-red-100', step: 3 },
         'Cancellation Requested': { icon: AlertCircle, color: 'text-red-500', bg: 'bg-red-50', border: 'border-red-100', step: -1 },
         'Cancelled': { icon: XCircle, color: 'text-gray-400', bg: 'bg-gray-50', border: 'border-gray-100', step: -1 },
         'Return Requested': { icon: Undo2, color: 'text-red-800', bg: 'bg-red-50', border: 'border-red-200', step: -1 }
     };
 
-    const orderSteps = ['Placed', 'Processing', 'To Ship', 'Shipped', 'Out for Delivery', 'Delivered'];
+    const orderSteps = ['Processing', 'To Ship', 'Shipped', 'Completed'];
 
     const OrderTracker = ({ currentStatus }) => {
         const S = statusMap[currentStatus] || statusMap['Pending'];
@@ -435,7 +448,7 @@ export default function MyOrders() {
                 </header>
 
                 <div className="flex gap-2 overflow-x-auto pb-8 no-scrollbar">
-                    {['All', 'Pending', 'To Ship', 'Shipped', 'Delivered', 'Completed', 'Return Requested'].map(f => (
+                    {['All', 'Processing', 'To Ship', 'Shipped', 'Completed', 'Return Requested'].map(f => (
                         <button
                             key={f}
                             onClick={() => setFilter(f)}
@@ -478,7 +491,11 @@ export default function MyOrders() {
                                                     <S.icon size={32} />
                                                 </div>
                                                 <div>
-                                                    <p className={`text-xl font-black ${S.color}`}>{order.status}</p>
+                                                    <p className={`text-xl font-black ${S.color}`}>
+                                                        {order.status === 'Pending' ? 'Processing' :
+                                                            order.status === 'Delivered' ? 'Completed' :
+                                                                order.status}
+                                                    </p>
                                                     <p className="text-[10px] font-black text-gray-300 uppercase tracking-widest">Order ID: #{order.id?.toString().slice(-8).toUpperCase() || 'N/A'}</p>
                                                 </div>
                                             </div>
@@ -495,15 +512,15 @@ export default function MyOrders() {
                                                     </button>
                                                 )}
 
-                                                {/* Rating and Return Buttons - For Delivered orders */}
+                                                {/* Confirm Receipt & Return - For Delivered orders */}
                                                 {order.status === 'Delivered' && (
                                                     <>
                                                         <button
-                                                            onClick={() => setShowReviewModal(order.id)}
+                                                            onClick={() => handleCompleteOrder(order.id)}
                                                             className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-green-600 text-white font-black text-[10px] uppercase tracking-widest hover:bg-black transition-all shadow-xl shadow-green-100"
                                                         >
-                                                            <Star size={16} />
-                                                            Rate & Complete
+                                                            <CheckCircle2 size={16} />
+                                                            Confirm Receipt
                                                         </button>
                                                         <button
                                                             onClick={() => setShowReturnModal(order.id)}
@@ -515,8 +532,19 @@ export default function MyOrders() {
                                                     </>
                                                 )}
 
-                                                {/* Cancel Request Button */}
-                                                {order.status === 'Pending' && (
+                                                {/* Rate Button - Only for Completed orders that haven't been reviewed */}
+                                                {order.status === 'Completed' && !order.reviewComment && (
+                                                    <button
+                                                        onClick={() => setShowReviewModal(order.id)}
+                                                        className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-red-600 text-white font-black text-[10px] uppercase tracking-widest hover:bg-black transition-all shadow-xl shadow-red-100"
+                                                    >
+                                                        <Star size={16} />
+                                                        Rate Order
+                                                    </button>
+                                                )}
+
+                                                {/* Cancel Request Button - Allowed until Shipped */}
+                                                {!['Shipped', 'Completed', 'Cancelled', 'Cancellation Requested', 'Return Requested'].includes(order.status) && (
                                                     <button
                                                         onClick={() => requestCancel(order.id)}
                                                         disabled={cancellingId === order.id}

@@ -6,7 +6,7 @@ import Navbar from '@/components/Navbar';
 import ChatBox from '@/components/ChatBox';
 import { useAuth } from '@/context/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Star, ShieldCheck, MapPin, Calendar, Package, ShoppingCart, MessageCircle, ChevronRight } from 'lucide-react';
+import { Star, ShieldCheck, MapPin, Calendar, Package, ShoppingCart, MessageCircle, ChevronRight, Store } from 'lucide-react';
 
 export default function ShopProfile() {
     const router = useRouter();
@@ -27,11 +27,18 @@ export default function ShopProfile() {
         try {
             setLoading(true);
             const [shopRes, productsRes] = await Promise.all([
-                api.get(`/auth/seller/${id}`),
-                api.get(`/products?shop=${id}`)
+                api.get(`/auth/seller/${id}`, { validateStatus: status => status === 200 || status === 404 }),
+                api.get(`/products?shop=${id}`, { validateStatus: status => status === 200 || status === 404 })
             ]);
+
+            if (shopRes.status === 404) {
+                setShop(null);
+                setProducts([]);
+                return;
+            }
+
             setShop(shopRes.data);
-            setProducts(productsRes.data);
+            setProducts(productsRes.status === 200 ? productsRes.data : []);
         } catch (error) {
             console.error('Error fetching shop:', error);
         } finally {
@@ -40,7 +47,23 @@ export default function ShopProfile() {
     };
 
     if (loading) return <div className="min-h-screen bg-[#f5f5f5] flex items-center justify-center font-bold text-red-600 animate-pulse uppercase tracking-widest text-xs">Summoning Artisan Catalog...</div>;
-    if (!shop) return <div className="min-h-screen bg-[#f5f5f5] flex items-center justify-center">Shop not found.</div>;
+    if (!shop) return (
+        <div className="min-h-screen bg-[#f5f5f5] flex flex-col items-center justify-center p-6 text-center">
+            <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center text-gray-300 mb-6">
+                <Store size={40} />
+            </div>
+            <h1 className="text-xl font-black text-gray-900 uppercase tracking-tight mb-2">Artisan Registry Not Found</h1>
+            <p className="text-sm text-gray-400 font-medium italic max-w-xs mb-8">
+                This profile either doesn't exist or isn't registered as a heritage artisan in our registry.
+            </p>
+            <button
+                onClick={() => router.push('/')}
+                className="px-8 py-3 bg-red-600 text-white text-[10px] font-black uppercase tracking-widest rounded-xl shadow-xl shadow-red-100 hover:bg-black transition-all"
+            >
+                Return to Heritage Mall
+            </button>
+        </div>
+    );
 
     return (
         <div className="min-h-screen bg-[#f5f5f5]">
@@ -142,7 +165,7 @@ export default function ShopProfile() {
                 {/* About Section */}
                 {shop.shopDescription && (
                     <div className="bg-white rounded-sm shadow-sm p-8 mb-6">
-                        <h2 className="text-sm font-bold uppercase tracking-widest text-gray-900 border-b border-gray-100 pb-4 mb-4">About the Artisan</h2>
+                        <h2 className="text-sm font-bold uppercase tracking-widest text-gray-900 border-b border-gray-100 pb-4 mb-4">Artisan's Heritage</h2>
                         <p className="text-sm text-gray-600 leading-relaxed max-w-4xl whitespace-pre-wrap">
                             {shop.shopDescription}
                         </p>

@@ -68,6 +68,9 @@ class CartProvider with ChangeNotifier {
     if (quantity < 1) return;
     final idx = _items.indexWhere((i) => i.product.id == productId);
     if (idx >= 0) {
+      if (quantity > _items[idx].product.stock) {
+        quantity = _items[idx].product.stock;
+      }
       _items[idx].quantity = quantity;
       _saveCart();
       notifyListeners();

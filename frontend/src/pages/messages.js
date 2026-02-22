@@ -60,7 +60,7 @@ export default function MessagesPage() {
 
     const handleSendMessage = async (e) => {
         e.preventDefault();
-        if (!newMessage.trim() || sending || !selectedConv) return;
+        if (!newMessage.trim() || sending || !selectedConv?.otherUser?.id) return;
 
         setSending(true);
         try {
@@ -101,11 +101,11 @@ export default function MessagesPage() {
                 <div className="bg-white rounded-2xl shadow-xl border border-gray-100 flex overflow-hidden h-full">
 
                     {/* Sidebar: Conversations List */}
-                    <div className="w-full md:w-80 lg:w-96 border-r border-gray-100 flex flex-col bg-white">
+                    <div className={`${selectedConv ? 'hidden md:flex' : 'flex'} w-full md:w-80 lg:w-96 border-r border-gray-100 flex-col bg-white`}>
                         <div className="p-6 border-b border-gray-100">
                             <h1 className="text-xl font-black text-gray-900 uppercase tracking-tight flex items-center gap-2">
                                 <MessageSquare className="text-red-600" size={24} />
-                                Artisan Inbox
+                                {user.role === 'seller' ? 'Client Correspondence' : 'Artisan Inbox'}
                             </h1>
                             <div className="mt-4 relative">
                                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
@@ -171,12 +171,18 @@ export default function MessagesPage() {
                     </div>
 
                     {/* Main Chat Area */}
-                    <div className="hidden md:flex flex-1 flex-col bg-gray-50/30">
+                    <div className={`${selectedConv ? 'flex' : 'hidden md:flex'} flex-1 flex-col bg-gray-50/30`}>
                         {selectedConv ? (
                             <>
                                 {/* Chat Header */}
                                 <div className="p-4 bg-white border-b border-gray-100 flex items-center justify-between">
                                     <div className="flex items-center gap-3">
+                                        <button
+                                            onClick={() => setSelectedConv(null)}
+                                            className="md:hidden p-2 -ml-2 text-gray-400"
+                                        >
+                                            <ArrowLeft size={20} />
+                                        </button>
                                         <div className="w-10 h-10 rounded-full bg-gray-100 overflow-hidden">
                                             {selectedConv?.otherUser?.profileImage ? (
                                                 <img src={selectedConv.otherUser.profileImage} className="w-full h-full object-cover" />
@@ -194,12 +200,14 @@ export default function MessagesPage() {
                                             </p>
                                         </div>
                                     </div>
-                                    <button
-                                        onClick={() => router.push(`/shop/${selectedConv?.otherUser?.id}`)}
-                                        className="text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-red-600 transition-colors"
-                                    >
-                                        View Profile
-                                    </button>
+                                    {selectedConv?.otherUser?.id && (selectedConv.otherUser.shopName || selectedConv.otherUser.role === 'seller') && (
+                                        <button
+                                            onClick={() => router.push(`/shop/${selectedConv?.otherUser?.id}`)}
+                                            className="text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-red-600 transition-colors"
+                                        >
+                                            View Profile
+                                        </button>
+                                    )}
                                 </div>
 
                                 {/* Chat Messages */}

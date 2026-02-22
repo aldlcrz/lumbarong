@@ -54,14 +54,20 @@ export default function Checkout() {
         }
     }, [cartItems]);
 
-    const handleSubmit = async () => {
+    const handleSubmit = async (e) => {
+        e.preventDefault();
         if (!formData.address || !formData.phone) {
-            alert('Please complete your shipping details.');
+            toast.error('Please fulfill heritage delivery details');
             return;
         }
 
-        setIsOrdering(true);
+        if (formData.paymentMethod === 'GCash' && (!formData.referenceNumber || !receiptImage)) {
+            toast.error('Please provide GCash reference number and receipt');
+            return;
+        }
+
         try {
+            setLoading(true);
             const orderData = {
                 items: cartItems.map(item => ({
                     product: item.product.id,
@@ -75,14 +81,14 @@ export default function Checkout() {
                 receiptImage: formData.paymentMethod === 'GCash' ? receiptImage : null
             };
 
-            await api.post('/orders', orderData);
-            setOrderComplete(true);
+            const res = await api.post('/orders', orderData);
+            toast.success('Your masterpiece is ordered!');
             clearCart();
+            router.push(`/orders/${res.data.id}`);
         } catch (error) {
-            console.error(error);
-            alert(error.response?.data?.message || 'Order failed. Please try again.');
+            toast.error(error.response?.data?.message || 'Failed to place order');
         } finally {
-            setIsOrdering(false);
+            setLoading(false);
         }
     };
 

@@ -40,7 +40,9 @@ router.post('/', auth(['seller', 'admin', 'customer']), upload.single('image'), 
             fs.writeFileSync(filePath, req.file.buffer);
 
             // Return local URL
-            const localUrl = `http://localhost:5000/uploads/${fileName}`;
+            const protocol = req.protocol;
+            const host = req.get('host');
+            const localUrl = `${protocol}://${host}/uploads/${fileName}`;
             res.json({ url: localUrl });
         }
     } catch (error) {

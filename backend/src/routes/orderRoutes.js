@@ -11,6 +11,7 @@ router.post('/:id/cancel-request', auth(['customer']), orderController.requestCa
 router.post('/:id/payment-proof', auth(['customer']), orderController.submitPaymentProof);
 router.put('/:id/verify-payment', auth(['seller', 'admin']), orderController.verifyPayment);
 router.post('/:id/review', auth(['customer']), orderController.submitReview);
+router.post('/:id/complete', auth(['customer']), orderController.completeOrder);
 router.post('/:id/return-request', auth(['customer']), orderController.submitReturnRequest);
 
 module.exports = router;

@@ -37,6 +37,11 @@ const Product = sequelize.define('Product', {
             model: User,
             key: 'id'
         }
+    },
+    leadTime: {
+        type: DataTypes.INTEGER,
+        defaultValue: 3,
+        allowNull: false
     }
 }, {
     timestamps: true,
@@ -71,6 +76,22 @@ const ProductSize = sequelize.define('ProductSize', {
         primaryKey: true
     },
     size: {
+        type: DataTypes.STRING,
+        allowNull: false
+    },
+    ProductId: {
+        type: DataTypes.UUID,
+        allowNull: false
+    }
+});
+
+const ProductColor = sequelize.define('ProductColor', {
+    id: {
+        type: DataTypes.INTEGER,
+        autoIncrement: true,
+        primaryKey: true
+    },
+    color: {
         type: DataTypes.STRING,
         allowNull: false
     },
@@ -119,10 +140,13 @@ ProductImage.belongsTo(Product, { foreignKey: 'ProductId', onDelete: 'CASCADE' }
 Product.hasMany(ProductSize, { as: 'availableSizes', foreignKey: 'ProductId', onDelete: 'CASCADE' });
 ProductSize.belongsTo(Product, { foreignKey: 'ProductId', onDelete: 'CASCADE' });
 
+Product.hasMany(ProductColor, { as: 'availableColors', foreignKey: 'ProductId', onDelete: 'CASCADE' });
+ProductColor.belongsTo(Product, { foreignKey: 'ProductId', onDelete: 'CASCADE' });
+
 Product.hasMany(ProductRating, { as: 'ratings', foreignKey: 'ProductId', onDelete: 'CASCADE' });
 ProductRating.belongsTo(Product, { foreignKey: 'ProductId', onDelete: 'CASCADE' });
 
 User.hasMany(ProductRating, { foreignKey: 'userId', onDelete: 'CASCADE' });
 ProductRating.belongsTo(User, { foreignKey: 'userId', as: 'reviewer', onDelete: 'CASCADE' });
 
-module.exports = { Product, ProductImage, ProductSize, ProductRating };
+module.exports = { Product, ProductImage, ProductSize, ProductColor, ProductRating };

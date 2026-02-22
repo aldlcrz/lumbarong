@@ -48,6 +48,9 @@ const User = sequelize.define('User', {
   },
   gcashNumber: {
     type: DataTypes.STRING
+  },
+  gcashQrCode: {
+    type: DataTypes.STRING
   }
 }, {
   timestamps: true,

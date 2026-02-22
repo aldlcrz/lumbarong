@@ -46,8 +46,8 @@ exports.getConversation = async (req, res) => {
             },
             order: [['createdAt', 'ASC']],
             include: [
-                { model: User, as: 'sender', attributes: ['id', 'name', 'profileImage', 'shopName'] },
-                { model: User, as: 'receiver', attributes: ['id', 'name', 'profileImage', 'shopName'] }
+                { model: User, as: 'sender', attributes: ['id', 'name', 'profileImage', 'shopName', 'role'] },
+                { model: User, as: 'receiver', attributes: ['id', 'name', 'profileImage', 'shopName', 'role'] }
             ]
         });
 
@@ -98,8 +98,8 @@ exports.getConversations = async (req, res) => {
                 },
                 order: [['createdAt', 'DESC']],
                 include: [
-                    { model: User, as: 'sender', attributes: ['id', 'name', 'shopName', 'profileImage'] },
-                    { model: User, as: 'receiver', attributes: ['id', 'name', 'shopName', 'profileImage'] }
+                    { model: User, as: 'sender', attributes: ['id', 'name', 'shopName', 'profileImage', 'role'] },
+                    { model: User, as: 'receiver', attributes: ['id', 'name', 'shopName', 'profileImage', 'role'] }
                 ]
             });
 
@@ -123,7 +123,8 @@ exports.getConversations = async (req, res) => {
                     id: otherUserId,
                     name: otherUserValues ? otherUserValues.name : null,
                     shopName: otherUserValues ? otherUserValues.shopName : null,
-                    profileImage: otherUserValues ? otherUserValues.profileImage : null
+                    profileImage: otherUserValues ? otherUserValues.profileImage : null,
+                    role: otherUserValues ? otherUserValues.role : null
                 },
                 lastMessage: msgObj.content,
                 timestamp: msgObj.createdAt,
