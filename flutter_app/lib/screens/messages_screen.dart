@@ -98,7 +98,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
                     child: ListView.separated(
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       itemCount: _conversations.length,
-                      separatorBuilder: (_, __) =>
+                      separatorBuilder: (_, _) =>
                           const Divider(height: 1, indent: 80),
                       itemBuilder: (ctx, i) {
                         final conv = _conversations[i];

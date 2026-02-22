@@ -53,7 +53,9 @@ class _AddProductScreenState extends State<AddProductScreen> {
   }
 
   Future<void> _submit() async {
-    if (!_formKey.currentState!.validate()) return;
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
     if (_images.length < 3) {
       setState(() => _error = 'Please add at least 3 product images');
       return;
@@ -172,7 +174,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                     ),
                     const SizedBox(height: 16),
                     DropdownButtonFormField<String>(
-                      value: _category,
+                      initialValue: _category,
                       decoration: const InputDecoration(
                         labelText: 'Category *',
                         prefixIcon: Icon(Icons.category_outlined),
@@ -267,7 +269,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                         child: ListView.separated(
                           scrollDirection: Axis.horizontal,
                           itemCount: _images.length,
-                          separatorBuilder: (_, __) => const SizedBox(width: 8),
+                          separatorBuilder: (_, _) => const SizedBox(width: 8),
                           itemBuilder: (ctx, i) => Stack(
                             children: [
                               ClipRRect(
@@ -277,7 +279,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                                   width: 80,
                                   height: 80,
                                   fit: BoxFit.cover,
-                                  errorBuilder: (_, __, ___) => Container(
+                                  errorBuilder: (_, _, _) => Container(
                                     width: 80,
                                     height: 80,
                                     color: const Color(0xFFF3F4F6),

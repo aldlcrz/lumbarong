@@ -142,7 +142,7 @@ class _SellerProductsScreenState extends State<SellerProductsScreen> {
                     child: ListView.separated(
                       padding: const EdgeInsets.all(16),
                       itemCount: _products.length,
-                      separatorBuilder: (_, __) => const SizedBox(height: 10),
+                      separatorBuilder: (_, _) => const SizedBox(height: 10),
                       itemBuilder: (ctx, i) {
                         final p = _products[i];
                         final images = p['images'] as List? ?? [];
@@ -171,7 +171,7 @@ class _SellerProductsScreenState extends State<SellerProductsScreen> {
                                         width: 60,
                                         height: 60,
                                         fit: BoxFit.cover,
-                                        errorBuilder: (_, __, ___) => Container(
+                                        errorBuilder: (_, _, _) => Container(
                                           width: 60,
                                           height: 60,
                                           color: const Color(0xFFF3F4F6),

@@ -142,7 +142,7 @@ class _AdminProductsScreenState extends State<AdminProductsScreen> {
                     child: ListView.separated(
                       padding: const EdgeInsets.all(16),
                       itemCount: _products.length,
-                      separatorBuilder: (_, __) => const SizedBox(height: 10),
+                      separatorBuilder: (_, _) => const SizedBox(height: 10),
                       itemBuilder: (ctx, i) {
                         final p = _products[i];
                         final seller = p['seller'] as Map? ?? {};
