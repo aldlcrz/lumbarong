@@ -19,7 +19,9 @@ import {
     User as UserIcon,
     ShoppingBag,
     Star,
-    ArrowLeft
+    ArrowLeft,
+    Eye,
+    EyeOff
 } from 'lucide-react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
@@ -33,6 +35,7 @@ function CreateSellerModal({ onClose, onSuccess }) {
         shopDescription: ''
     });
     const [submitting, setSubmitting] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -105,13 +108,20 @@ function CreateSellerModal({ onClose, onSuccess }) {
                             <div className="relative">
                                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300" size={16} />
                                 <input
-                                    type="password"
+                                    type={showPassword ? "text" : "password"}
                                     required
-                                    className="w-full pl-12 pr-6 py-4 rounded-2xl bg-gray-50 border border-gray-100 focus:bg-white focus:border-red-600 outline-none transition-all font-bold text-sm"
+                                    className="w-full pl-12 pr-12 py-4 rounded-2xl bg-gray-50 border border-gray-100 focus:bg-white focus:border-red-600 outline-none transition-all font-bold text-sm"
                                     placeholder="••••••••"
                                     value={formData.password}
                                     onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                                 />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-red-600 transition-colors"
+                                >
+                                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                                </button>
                             </div>
                         </div>
 

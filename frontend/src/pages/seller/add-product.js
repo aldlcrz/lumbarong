@@ -20,6 +20,7 @@ export default function AddProduct() {
         stock: '',
         images: []
     });
+    const [categories, setCategories] = useState([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
     const [message, setMessage] = useState({ type: '', text: '' });
@@ -29,11 +30,25 @@ export default function AddProduct() {
             router.push('/login');
         }
 
+        fetchCategories();
+
         const { edit } = router.query;
         if (edit) {
             fetchProduct(edit);
         }
     }, [user, authLoading, router.query]);
+
+    const fetchCategories = async () => {
+        try {
+            const res = await api.get('/categories');
+            setCategories(res.data);
+            if (res.data.length > 0 && !router.query.edit) {
+                setFormData(prev => ({ ...prev, category: res.data[0].id }));
+            }
+        } catch (error) {
+            console.error('Failed to fetch categories:', error);
+        }
+    };
 
     const fetchProduct = async (id) => {
         try {
@@ -43,7 +58,7 @@ export default function AddProduct() {
                 name: product.name,
                 description: product.description,
                 price: product.price,
-                category: product.category,
+                category: product.CategoryId || product.category,
                 embroideryStyle: product.embroideryStyle || 'Traditional Calado',
                 fabric: product.fabric || 'Piña-Seda Silk',
                 stock: product.stock,
@@ -113,15 +128,20 @@ export default function AddProduct() {
             return;
         }
 
+        const payload = {
+            ...formData,
+            categoryId: formData.category // Map category to categoryId for backend
+        };
+
         setIsSubmitting(true);
         setMessage({ type: '', text: '' });
 
         try {
             if (edit) {
-                await api.put(`/products/${edit}`, formData);
+                await api.put(`/products/${edit}`, payload);
                 setMessage({ type: 'success', text: 'Update complete. Your masterpiece has been refined!' });
             } else {
-                await api.post('/products', formData);
+                await api.post('/products', payload);
                 setMessage({ type: 'success', text: 'Your masterpiece is now live in the collection!' });
             }
             setTimeout(() => router.push('/seller/inventory'), 2000);
@@ -280,9 +300,9 @@ export default function AddProduct() {
                                             onChange={handleChange}
                                             className="w-full bg-transparent outline-none font-bold text-gray-900 appearance-none cursor-pointer"
                                         >
-                                            <option>Barong Tagalog</option>
-                                            <option>Filipiniana Dresses</option>
-                                            <option>Accessories</option>
+                                            {categories.map(cat => (
+                                                <option key={cat.id} value={cat.id}>{cat.name}</option>
+                                            ))}
                                         </select>
                                     </Field>
 

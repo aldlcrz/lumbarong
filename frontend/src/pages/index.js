@@ -13,19 +13,34 @@ import { ShoppingBag, ArrowRight, ShieldCheck, Star } from 'lucide-react';
 export default function Home() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [activeCategory, setActiveCategory] = useState('All');
+  const [activeCategory, setActiveCategory] = useState({ id: 'All', name: 'All' });
+  const [categories, setCategories] = useState([{ id: 'All', name: 'All' }]);
   const [showFilters, setShowFilters] = useState(false);
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
   const { search } = router.query;
 
-  const categories = ['All', 'Barong Tagalog', 'Filipiniana Dresses', 'Accessories'];
+
+  useEffect(() => {
+    fetchCategories();
+  }, []);
+
+  const fetchCategories = async () => {
+    try {
+      const res = await api.get('/categories');
+      setCategories([{ id: 'All', name: 'All' }, ...res.data]);
+    } catch (err) {
+      console.error('Failed to fetch categories:', err);
+    }
+  };
 
   useEffect(() => {
     if (user) {
       setLoading(true);
       let params = new URLSearchParams();
-      if (activeCategory !== 'All') params.append('category', activeCategory);
+      if (activeCategory.id !== 'All') {
+        params.append('categoryId', activeCategory.id);
+      }
       if (search) params.append('search', search);
 
       api.get(`/products?${params.toString()}`)
@@ -68,11 +83,11 @@ export default function Home() {
             <div className="flex flex-wrap justify-center gap-1.5 md:gap-3 mb-8">
               {categories.map(cat => (
                 <button
-                  key={cat}
+                  key={cat.id}
                   onClick={() => setActiveCategory(cat)}
-                  className={`px-6 py-2.5 rounded-2xl font-black text-[10px] md:text-xs uppercase tracking-[0.2em] transition-all border ${activeCategory === cat ? 'bg-red-600 border-red-600 text-white shadow-xl shadow-red-600/30' : 'bg-white/10 border-white/10 text-white hover:bg-white/20'}`}
+                  className={`px-6 py-2.5 rounded-2xl font-black text-[10px] md:text-xs uppercase tracking-[0.2em] transition-all border ${activeCategory.id === cat.id ? 'bg-red-600 border-red-600 text-white shadow-xl shadow-red-600/30' : 'bg-white/10 border-white/10 text-white hover:bg-white/20'}`}
                 >
-                  {cat}
+                  {cat.name}
                 </button>
               ))}
             </div>
@@ -86,7 +101,7 @@ export default function Home() {
                 {search ? `SEARCH RESULTS FOR "${search.toUpperCase()}"` : 'Artisan Collection'}
               </p>
               <h3 className="text-4xl font-black text-gray-900 tracking-tight">
-                {search ? `Found ${products.length} Pieces` : (activeCategory === 'All' ? 'Curated For You' : activeCategory)}
+                {search ? `Found ${products.length} Pieces` : (activeCategory.id === 'All' ? 'Curated For You' : activeCategory.name)}
               </h3>
             </div>
           </div>
@@ -117,7 +132,7 @@ export default function Home() {
               <p className="text-gray-400 font-bold uppercase tracking-widest text-xs">No pieces found in this category.</p>
               <button
                 onClick={() => {
-                  setActiveCategory('All');
+                  setActiveCategory({ id: 'All', name: 'All' });
                   router.push('/', undefined, { shallow: true });
                 }}
                 className="mt-6 text-red-600 font-black text-xs underline decoration-2 underline-offset-4 uppercase tracking-widest"

@@ -19,6 +19,8 @@ module.exports = (roles = []) => {
         try {
             const decoded = jwt.verify(token, process.env.JWT_SECRET);
             req.user = decoded;
+            // Normalize ID access
+            req.user.id = decoded.userId || decoded.id;
 
             // Check if role is authorized
             if (roles.length > 0 && !roles.includes(req.user.role)) {

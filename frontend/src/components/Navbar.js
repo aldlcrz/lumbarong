@@ -80,15 +80,16 @@ export default function Navbar({ minimal = false }) {
                         <NavLink href="/seller/orders" icon={ShoppingBag}>Order Registry</NavLink>
                         <NavLink href="/messages" icon={MessageSquare}>Messages</NavLink>
                         <NavLink href="/seller/inventory" icon={Layers}>Inventory</NavLink>
+                        <NavLink href="/seller/profile" icon={User}>My Profile</NavLink>
                     </>
                 );
             default: // customer
                 return (
                     <>
-                        <NavLink href="/" icon={Store}>Heritage Mall</NavLink>
+                        <NavLink href="/" icon={Store}>Shop</NavLink>
                         <NavLink href="/orders" icon={ShoppingBag}>My Orders</NavLink>
                         <NavLink href="/messages" icon={MessageSquare}>Messages</NavLink>
-                        <NavLink href="/heritage-guide" icon={ShieldCheck}>Heritage Guide</NavLink>
+                        <NavLink href="/profile" icon={User}>My Profile</NavLink>
                     </>
                 );
         }

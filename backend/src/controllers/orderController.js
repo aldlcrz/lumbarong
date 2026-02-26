@@ -115,6 +115,11 @@ exports.getOrders = async (req, res) => {
                         attributes: ['name', 'price', 'id'],
                         include: [{ model: ProductImage, as: 'images' }]
                     }]
+                },
+                {
+                    model: ProductRating,
+                    as: 'ratings',
+                    include: [{ model: User, as: 'reviewer', attributes: ['name', 'profileImage'] }]
                 }
             ],
             order: [['createdAt', 'DESC']]
@@ -137,7 +142,12 @@ exports.getOrderById = async (req, res) => {
                     as: 'items',
                     include: [{ model: Product, as: 'product', attributes: ['name', 'price', 'images', 'id'] }]
                 },
-                { model: ReturnRequest, as: 'returnRequest' }
+                { model: ReturnRequest, as: 'returnRequest' },
+                {
+                    model: ProductRating,
+                    as: 'ratings',
+                    include: [{ model: User, as: 'reviewer', attributes: ['name', 'profileImage'] }]
+                }
             ]
         });
 
@@ -291,38 +301,77 @@ exports.verifyPayment = async (req, res) => {
 };
 
 exports.submitReview = async (req, res) => {
+    const t = await sequelize.transaction();
     try {
-        const { rating, comment, images } = req.body;
+        const { ratings } = req.body; // Array of { productId, rating, comment, images }
         const order = await Order.findByPk(req.params.id, {
-            include: [{ model: OrderItem, as: 'items', include: [{ model: Product, as: 'product' }] }]
+            include: [{ model: OrderItem, as: 'items' }],
+            transaction: t
         });
 
-        if (!order) return res.status(404).json({ message: 'Order not found' });
+        if (!order) {
+            await t.rollback();
+            return res.status(404).json({ message: 'Order not found' });
+        }
+
         const currentUserId = req.user.id || req.user.userId;
         if (order.customerId !== currentUserId) {
+            await t.rollback();
             return res.status(403).json({ message: 'Unauthorized' });
         }
 
         if (order.status !== 'Delivered') {
+            await t.rollback();
             return res.status(400).json({ message: 'Order must be delivered before rating' });
         }
 
-        await order.update({
-            rating,
-            reviewComment: comment,
-            reviewImages: images,
-            reviewCreatedAt: new Date(),
-            status: 'Completed'
+        const { ProductRating } = require('../models/Product');
+
+        // Create ratings for each specified product
+        for (const itemReview of ratings) {
+            const { productId, rating, comment, images } = itemReview;
+
+            // Check if this product is in the order
+            const orderItem = order.items.find(item => item.productId === productId);
+            if (!orderItem) continue;
+
+            await ProductRating.create({
+                ProductId: productId,
+                userId: currentUserId,
+                rating,
+                review: comment,
+                images: images || [],
+                orderId: order.id
+            }, { transaction: t });
+
+            // Mark this item as rated
+            await orderItem.update({ isRated: true }, { transaction: t });
+        }
+
+        // Check if all items are rated to finalize order status
+        const updatedOrder = await Order.findByPk(order.id, {
+            include: [{ model: OrderItem, as: 'items' }],
+            transaction: t
         });
+
+        const allRated = updatedOrder.items.every(item => item.isRated);
+
+        // We always mark as Completed if at least ONE item is being rated now, 
+        // or just mark as Completed anyway to match Lazada/Shopee flow.
+        await order.update({ status: 'Completed' }, { transaction: t });
+
+        await t.commit();
 
         for (let item of order.items) {
             if (item.product && item.product.sellerId) {
-                await sendNotification(item.product.sellerId, `An order has been rated and completed!`, 'order');
+                await sendNotification(item.product.sellerId, `An item in your order has been rated!`, 'order');
             }
         }
 
-        res.json({ message: 'Review submitted and order marked as completed', order });
+        res.json({ message: 'Review(s) submitted successfully', order });
     } catch (error) {
+        if (t) await t.rollback();
+        console.error('Submit Review Error:', error);
         res.status(500).json({ message: 'Server error', error: error.message });
     }
 };

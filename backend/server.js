@@ -10,6 +10,7 @@ require('./src/models/Order');
 require('./src/models/Message');
 require('./src/models/Notification');
 require('./src/models/Wishlist');
+require('./src/models/Address');
 
 const server = http.createServer(app);
 const allowedOrigins = [
@@ -54,6 +55,9 @@ const startServer = async () => {
 
         await sequelize.sync({ alter: true });
         console.log('✅ Database synchronized');
+
+        const initCategories = require('./src/utils/initCategories');
+        await initCategories();
     } catch (err) {
         console.error('❌ Database connection/sync error:', err);
         console.log('⚠️ Server will continue to run, but DB-dependent features will fail.');

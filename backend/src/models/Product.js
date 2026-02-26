@@ -1,6 +1,7 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
 const User = require('./User');
+const Category = require('./Category');
 
 const Product = sequelize.define('Product', {
     id: {
@@ -27,8 +28,9 @@ const Product = sequelize.define('Product', {
         type: DataTypes.INTEGER,
         defaultValue: 5
     },
-    category: {
-        type: DataTypes.ENUM('Barong Tagalog', 'Filipiniana Dresses', 'Accessories', 'Others')
+    CategoryId: {
+        type: DataTypes.UUID,
+        allowNull: true // Temporarily allow null for migration, or set a default
     },
     embroideryStyle: {
         type: DataTypes.STRING,
@@ -53,7 +55,7 @@ const Product = sequelize.define('Product', {
 }, {
     timestamps: true,
     indexes: [
-        { fields: ['category'] },
+        { fields: ['CategoryId'] },
         { fields: ['sellerId'] },
         { fields: ['price'] },
         { fields: ['name'] }
@@ -105,6 +107,14 @@ const ProductRating = sequelize.define('ProductRating', {
     review: {
         type: DataTypes.TEXT
     },
+    images: {
+        type: DataTypes.JSON, // Array of strings
+        defaultValue: []
+    },
+    helpfulCount: {
+        type: DataTypes.INTEGER,
+        defaultValue: 0
+    },
     userId: {
         type: DataTypes.UUID,
         allowNull: false
@@ -112,6 +122,10 @@ const ProductRating = sequelize.define('ProductRating', {
     ProductId: {
         type: DataTypes.UUID,
         allowNull: false
+    },
+    orderId: {
+        type: DataTypes.UUID,
+        allowNull: true // Should ideally be true for verified purchases
     }
 }, {
     timestamps: true,
@@ -134,7 +148,10 @@ ProductSize.belongsTo(Product, { foreignKey: 'ProductId', onDelete: 'CASCADE' })
 Product.hasMany(ProductRating, { as: 'ratings', foreignKey: 'ProductId', onDelete: 'CASCADE' });
 ProductRating.belongsTo(Product, { foreignKey: 'ProductId', onDelete: 'CASCADE' });
 
+Category.hasMany(Product, { foreignKey: 'CategoryId', as: 'products' });
+Product.belongsTo(Category, { foreignKey: 'CategoryId', as: 'category' });
+
 User.hasMany(ProductRating, { foreignKey: 'userId', onDelete: 'CASCADE' });
 ProductRating.belongsTo(User, { foreignKey: 'userId', as: 'reviewer', onDelete: 'CASCADE' });
 
-module.exports = { Product, ProductImage, ProductSize, ProductRating };
+module.exports = { Product, ProductImage, ProductSize, ProductRating, Category };

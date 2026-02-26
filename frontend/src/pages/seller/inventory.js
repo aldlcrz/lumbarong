@@ -30,6 +30,7 @@ export default function InventoryPage() {
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
+    const [categories, setCategories] = useState([]);
     const [categoryFilter, setCategoryFilter] = useState('All');
     const [stockFilter, setStockFilter] = useState('All');
     const [editingId, setEditingId] = useState(null);
@@ -40,10 +41,20 @@ export default function InventoryPage() {
     useEffect(() => {
         if (user && (user.role === 'seller' || user.role === 'admin')) {
             fetchProducts();
+            fetchCategories();
             const interval = setInterval(fetchProducts, 30000);
             return () => clearInterval(interval);
         }
     }, [user]);
+
+    const fetchCategories = async () => {
+        try {
+            const res = await api.get('/categories');
+            setCategories(res.data);
+        } catch (err) {
+            console.error('Failed to fetch categories:', err);
+        }
+    };
 
     const fetchProducts = async () => {
         try {
@@ -93,11 +104,11 @@ export default function InventoryPage() {
 
     if (authLoading || !user) return null;
 
-    const categories = ['All', ...new Set(products.map(p => p.category))];
 
     const filteredProducts = products.filter(p => {
         const matchesSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase());
-        const matchesCategory = categoryFilter === 'All' || p.category === categoryFilter;
+        const catValue = p.category?.id || p.CategoryId || p.category; // Handle both object and legacy string
+        const matchesCategory = categoryFilter === 'All' || catValue === categoryFilter;
         const matchesStock = stockFilter === 'All' ||
             (stockFilter === 'Low Stock' && p.stock <= (p.lowStockThreshold || 5)) ||
             (stockFilter === 'Out of Stock' && p.stock === 0) ||
@@ -167,7 +178,8 @@ export default function InventoryPage() {
                                 onChange={(e) => setCategoryFilter(e.target.value)}
                                 className="bg-transparent outline-none font-bold text-xs text-gray-600 pr-4"
                             >
-                                {categories.map(c => <option key={c} value={c}>{c}</option>)}
+                                <option value="All">All Categories</option>
+                                {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                             </select>
                         </div>
 
@@ -214,7 +226,7 @@ export default function InventoryPage() {
                                         {/* info */}
                                         <div className="flex-1 min-w-0">
                                             <div className="flex items-center gap-2 mb-1">
-                                                <span className="text-[8px] font-black uppercase tracking-widest text-gray-400">{product.category}</span>
+                                                <span className="text-[8px] font-black uppercase tracking-widest text-gray-400">{product.category?.name || product.category}</span>
                                             </div>
                                             <h3 className="text-xl font-black text-gray-900 tracking-tight">{product.name}</h3>
                                             <p className="text-xs text-gray-400 font-medium italic mb-3">SKU: {product.id?.toString().slice(-8).toUpperCase() || 'N/A'}</p>

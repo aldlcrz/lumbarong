@@ -34,6 +34,7 @@ export default function ProductDetails() {
         description: ''
     });
     const [isSaving, setIsSaving] = useState(false);
+    const [reviewFilter, setReviewFilter] = useState('all');
     const { addToCart } = useCart();
     const { user, loading: authLoading } = useAuth();
     const isAdmin = user?.role === 'admin';
@@ -317,24 +318,26 @@ export default function ProductDetails() {
                                 </div>
                             </div>
 
-                            {/* Quantity */}
-                            <div className="flex items-center gap-12">
-                                <span className="text-sm text-gray-500 w-24">Quantity</span>
-                                <div className="flex items-center gap-4">
-                                    <div className="flex items-center border border-gray-200 rounded-sm overflow-hidden h-8 bg-white">
-                                        <button
-                                            onClick={() => setQuantity(q => Math.max(1, q - 1))}
-                                            className="w-8 h-full flex items-center justify-center hover:bg-gray-50 transition-colors border-r text-gray-500"
-                                        >-</button>
-                                        <span className="w-12 h-full flex items-center justify-center text-sm">{quantity}</span>
-                                        <button
-                                            onClick={() => setQuantity(q => q + 1)}
-                                            className="w-8 h-full flex items-center justify-center hover:bg-gray-50 transition-colors border-l text-gray-500"
-                                        >+</button>
+                            {/* Quantity - Hidden for Admins */}
+                            {!isAdmin && (
+                                <div className="flex items-center gap-12">
+                                    <span className="text-sm text-gray-500 w-24">Quantity</span>
+                                    <div className="flex items-center gap-4">
+                                        <div className="flex items-center border border-gray-200 rounded-sm overflow-hidden h-8 bg-white">
+                                            <button
+                                                onClick={() => setQuantity(q => Math.max(1, q - 1))}
+                                                className="w-8 h-full flex items-center justify-center hover:bg-gray-50 transition-colors border-r text-gray-500"
+                                            >-</button>
+                                            <span className="w-12 h-full flex items-center justify-center text-sm">{quantity}</span>
+                                            <button
+                                                onClick={() => setQuantity(q => q + 1)}
+                                                className="w-8 h-full flex items-center justify-center hover:bg-gray-50 transition-colors border-l text-gray-500"
+                                            >+</button>
+                                        </div>
+                                        <span className="text-xs text-gray-400">{product.stock} pieces available</span>
                                     </div>
-                                    <span className="text-xs text-gray-400">{product.stock} pieces available</span>
                                 </div>
-                            </div>
+                            )}
                         </div>
 
                         {/* CTA Row — Role Aware */}
@@ -565,40 +568,125 @@ export default function ProductDetails() {
                         )}
                     </div>
 
-                    {/* Product Reviews - Only for Buyers */}
-                    {isBuyer && (
-                        <>
-                            <h2 id="reviews" className="bg-[#fafafa] p-4 text-lg font-medium text-gray-900 my-8 uppercase tracking-wider flex items-center gap-3">
-                                <MessageSquare size={20} className="text-red-500" />
-                                Product Reviews
-                            </h2>
-                            <div className="px-4 space-y-8">
-                                {product.ratings?.length > 0 ? (
-                                    product.ratings.map((rate, idx) => (
-                                        <div key={rate.id || idx} className="border-b border-gray-100 pb-8 flex gap-6">
-                                            <div className="w-12 h-12 rounded-full bg-gray-100 shrink-0 flex items-center justify-center text-gray-400 font-bold uppercase italic">
-                                                {rate.reviewer?.name?.charAt(0) || 'A'}
+                    {/* Product Reviews - Lazada/Shopee Style */}
+                    <div id="reviews" className="mt-12 bg-white rounded-sm">
+                        <h2 className="text-lg font-medium text-gray-900 uppercase tracking-wider mb-6 pb-4 border-b border-gray-100 flex items-center gap-3">
+                            <MessageSquare size={20} className="text-red-500" />
+                            Product Ratings
+                        </h2>
+
+                        <div className="bg-[#fffbf8] border border-[#ffead8] rounded-sm p-8 mb-8 flex flex-col md:flex-row gap-12">
+                            {/* Score Block */}
+                            <div className="text-center md:text-left">
+                                <div className="flex items-baseline gap-1 justify-center md:justify-start">
+                                    <span className="text-3xl font-medium text-red-500">{product.averageRating || '0.0'}</span>
+                                    <span className="text-sm text-red-500 font-medium">out of 5</span>
+                                </div>
+                                <div className="flex text-red-500 justify-center md:justify-start mt-2">
+                                    {[1, 2, 3, 4, 5].map((star) => (
+                                        <Star key={star} size={20} fill={star <= Math.round(product.averageRating || 0) ? "currentColor" : "none"} className={star <= Math.round(product.averageRating || 0) ? "" : "text-gray-200"} />
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Filters / Distro */}
+                            <div className="flex-1 flex flex-wrap gap-2">
+                                <button
+                                    onClick={() => setReviewFilter('all')}
+                                    className={`px-4 py-1.5 rounded-sm border text-xs transition-all ${reviewFilter === 'all' ? 'border-red-500 text-red-500 bg-white ring-1 ring-red-500' : 'border-gray-200 bg-white hover:border-red-500 hover:text-red-500'}`}
+                                >
+                                    All ({product.totalRatings || 0})
+                                </button>
+                                {[5, 4, 3, 2, 1].map(star => (
+                                    <button
+                                        key={star}
+                                        onClick={() => setReviewFilter(star)}
+                                        className={`px-4 py-1.5 rounded-sm border text-xs transition-all ${reviewFilter === star ? 'border-red-500 text-red-500 bg-white ring-1 ring-red-500' : 'border-gray-200 bg-white hover:border-red-500 hover:text-red-500'}`}
+                                    >
+                                        {star} Star ({product.ratingDistribution?.[star] || 0})
+                                    </button>
+                                ))}
+                                <button
+                                    onClick={() => setReviewFilter('with_comments')}
+                                    className={`px-4 py-1.5 rounded-sm border text-xs transition-all ${reviewFilter === 'with_comments' ? 'border-red-500 text-red-500 bg-white ring-1 ring-red-500' : 'border-gray-200 bg-white hover:border-red-500 hover:text-red-500'}`}
+                                >
+                                    With Comments ({product.ratings?.filter(r => r.review)?.length || 0})
+                                </button>
+                                <button
+                                    onClick={() => setReviewFilter('with_media')}
+                                    className={`px-4 py-1.5 rounded-sm border text-xs transition-all ${reviewFilter === 'with_media' ? 'border-red-500 text-red-500 bg-white ring-1 ring-red-500' : 'border-gray-200 bg-white hover:border-red-500 hover:text-red-500'}`}
+                                >
+                                    With Media ({product.ratings?.filter(r => r.images?.length > 0)?.length || 0})
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Review List */}
+                        <div className="space-y-8">
+                            {product.ratings?.filter(r => {
+                                if (reviewFilter === 'all') return true;
+                                if (typeof reviewFilter === 'number') return r.rating === reviewFilter;
+                                if (reviewFilter === 'with_comments') return !!r.review;
+                                if (reviewFilter === 'with_media') return r.images?.length > 0;
+                                return true;
+                            }).length > 0 ? (
+                                product.ratings
+                                    ?.filter(r => {
+                                        if (reviewFilter === 'all') return true;
+                                        if (typeof reviewFilter === 'number') return r.rating === reviewFilter;
+                                        if (reviewFilter === 'with_comments') return !!r.review;
+                                        if (reviewFilter === 'with_media') return r.images?.length > 0;
+                                        return true;
+                                    })
+                                    .map((rate, idx) => (
+                                        <div key={rate.id || idx} className="border-b border-gray-100 pb-8 flex gap-4">
+                                            <div className="w-10 h-10 rounded-full bg-gray-100 shrink-0 flex items-center justify-center text-gray-400 font-bold uppercase overflow-hidden">
+                                                {rate.reviewer?.profileImage ? (
+                                                    <img src={rate.reviewer.profileImage} className="w-full h-full object-cover" />
+                                                ) : (
+                                                    <span>{rate.reviewer?.name?.charAt(0) || 'A'}</span>
+                                                )}
                                             </div>
                                             <div className="flex-1">
-                                                <p className="text-xs font-black text-gray-900 uppercase mb-1">{rate.reviewer?.name || 'Artisan Patrons'}</p>
-                                                <div className="flex text-amber-500 mb-3">
+                                                <p className="text-[11px] font-medium text-gray-900 mb-0.5">{rate.reviewer?.name || 'Artisan Patron'}</p>
+                                                <div className="flex text-red-500 mb-2">
                                                     {[...Array(5)].map((_, i) => (
-                                                        <Star key={i} size={12} fill={i < rate.rating ? "currentColor" : "none"} className={i < rate.rating ? "" : "text-gray-200"} />
+                                                        <Star key={i} size={10} fill={i < rate.rating ? "currentColor" : "none"} className={i < rate.rating ? "" : "text-gray-200"} />
                                                     ))}
                                                 </div>
-                                                <p className="text-sm text-gray-700 leading-relaxed italic">"{rate.review}"</p>
-                                                <p className="text-[10px] text-gray-400 mt-4 font-bold uppercase tracking-widest">{new Date(rate.createdAt).toLocaleDateString()} | Platinum Member</p>
+                                                <p className="text-[10px] text-gray-400 mb-3 uppercase tracking-wider">
+                                                    {new Date(rate.createdAt).toLocaleDateString()} | Variation: {selectedColor}, {selectedSize}
+                                                </p>
+
+                                                <p className="text-sm text-gray-800 leading-relaxed mb-4">{rate.review}</p>
+
+                                                {/* Review Images */}
+                                                {rate.images?.length > 0 && (
+                                                    <div className="flex gap-2 mb-4">
+                                                        {rate.images.map((img, i) => (
+                                                            <div key={i} className="w-20 h-20 rounded-sm overflow-hidden border border-gray-100 cursor-pointer hover:border-red-500 transition-all">
+                                                                <img src={img} className="w-full h-full object-cover" />
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                )}
+
+                                                <div className="flex items-center gap-4">
+                                                    <button className="flex items-center gap-1.5 text-gray-400 hover:text-red-500 transition-colors">
+                                                        <Heart size={14} />
+                                                        <span className="text-xs font-medium">Helpful? ({rate.helpfulCount || 0})</span>
+                                                    </button>
+                                                </div>
                                             </div>
                                         </div>
                                     ))
-                                ) : (
-                                    <div className="text-center py-12 bg-gray-50 rounded-2xl border border-dashed border-gray-200">
-                                        <p className="text-gray-400 text-sm italic font-medium">No reviews yet. Be the first to rate this heritage piece!</p>
-                                    </div>
-                                )}
-                            </div>
-                        </>
-                    )}
+                            ) : (
+                                <div className="text-center py-20 bg-gray-50 rounded-sm border border-dashed border-gray-200">
+                                    <p className="text-gray-400 text-sm italic">No reviews match your filter. Be the first to share your experience!</p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
                 </div>
 
                 {/* Related Products Section */}

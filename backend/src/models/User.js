@@ -48,6 +48,18 @@ const User = sequelize.define('User', {
   },
   gcashNumber: {
     type: DataTypes.STRING
+  },
+  facebook: {
+    type: DataTypes.STRING
+  },
+  instagram: {
+    type: DataTypes.STRING
+  },
+  tiktok: {
+    type: DataTypes.STRING
+  },
+  twitter: {
+    type: DataTypes.STRING
   }
 }, {
   timestamps: true,

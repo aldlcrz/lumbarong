@@ -120,95 +120,152 @@ function PaymentProofModal({ orderId, onClose, onSuccess }) {
 }
 
 function ReviewModal({ orderId, onClose, onSuccess }) {
-    const [rating, setRating] = useState(5);
-    const [comment, setComment] = useState('');
-    const [file, setFile] = useState(null);
+    const [order, setOrder] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [itemRatings, setItemRatings] = useState({}); // { productId: { rating, comment, image } }
     const [uploading, setUploading] = useState(false);
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
+    useEffect(() => {
+        fetchOrderDetails();
+    }, [orderId]);
+
+    const fetchOrderDetails = async () => {
+        try {
+            const res = await api.get(`/orders/${orderId}`);
+            setOrder(res.data);
+            const initialRatings = {};
+            res.data.items.forEach(item => {
+                initialRatings[item.productId] = { rating: 5, comment: '', image: '', file: null };
+            });
+            setItemRatings(initialRatings);
+        } catch (err) {
+            console.error('Failed to fetch order details for review:', err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleItemRatingChange = (productId, field, value) => {
+        setItemRatings(prev => ({
+            ...prev,
+            [productId]: { ...prev[productId], [field]: value }
+        }));
+    };
+
+    const handleFileUpload = async (productId, file) => {
+        if (!file) return;
         setUploading(true);
         try {
-            let imageUrl = '';
-            if (file) {
-                const formData = new FormData();
-                formData.append('image', file);
-                const uploadRes = await api.post('/upload', formData);
-                imageUrl = uploadRes.data.url;
-            }
-
-            await api.post(`/orders/${orderId}/review`, {
-                rating,
-                comment,
-                images: imageUrl ? [imageUrl] : []
-            });
-
-            onSuccess();
+            const formData = new FormData();
+            formData.append('image', file);
+            const res = await api.post('/upload', formData);
+            handleItemRatingChange(productId, 'image', res.data.url);
+            handleItemRatingChange(productId, 'file', file);
         } catch (err) {
-            alert('Failed to submit review.');
+            alert('Upload failed for item');
         } finally {
             setUploading(false);
         }
     };
 
-    return (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            <motion.div
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="bg-white rounded-[3rem] p-10 max-w-lg w-full shadow-2xl"
-            >
-                <h3 className="text-3xl font-black text-gray-900 mb-2 italic uppercase tracking-tighter">Rate Your Artwork</h3>
-                <p className="text-gray-500 font-medium mb-8 italic">Mark your order as complete by rating the craftsmanship.</p>
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setUploading(true);
+        try {
+            const ratingsArray = Object.keys(itemRatings).map(pid => ({
+                productId: pid,
+                rating: itemRatings[pid].rating,
+                comment: itemRatings[pid].comment,
+                images: itemRatings[pid].image ? [itemRatings[pid].image] : []
+            }));
 
-                <form onSubmit={handleSubmit} className="space-y-6">
-                    <div className="flex justify-center gap-2 mb-6">
-                        {[1, 2, 3, 4, 5].map((star) => (
-                            <button
-                                key={star}
-                                type="button"
-                                onClick={() => setRating(star)}
-                                className={`transition-all ${rating >= star ? 'text-amber-400 scale-110' : 'text-gray-200'}`}
-                            >
-                                <Star size={40} fill={rating >= star ? 'currentColor' : 'none'} />
-                            </button>
+            await api.post(`/orders/${orderId}/review`, { ratings: ratingsArray });
+            onSuccess();
+        } catch (err) {
+            alert('Failed to submit reviews.');
+        } finally {
+            setUploading(false);
+        }
+    };
+
+    if (loading || !order) return null;
+
+    return (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
+            <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-white rounded-[4rem] p-10 max-w-2xl w-full shadow-2xl my-8"
+            >
+                <div className="text-center mb-10">
+                    <h3 className="text-4xl font-black text-gray-900 mb-2 italic uppercase tracking-tighter">Rate Your Artwork</h3>
+                    <p className="text-gray-500 font-medium italic">Your feedback preserves our heritage. Rate each masterpiece.</p>
+                </div>
+
+                <form onSubmit={handleSubmit} className="space-y-12">
+                    <div className="space-y-10 max-h-[60vh] overflow-y-auto pr-4 no-scrollbar">
+                        {order.items.map((item) => (
+                            <div key={item.productId} className="p-8 bg-gray-50 rounded-[3rem] border border-gray-100 space-y-6">
+                                <div className="flex gap-6 items-center border-b border-gray-200 pb-6">
+                                    <img src={item.product?.images?.[0]?.url || item.product?.images?.[0]} className="w-20 h-28 object-cover rounded-2xl shadow-sm" />
+                                    <div>
+                                        <p className="text-sm font-black text-gray-900 uppercase tracking-widest">{item.product?.name}</p>
+                                        <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1">Lumban Handmade Heritage</p>
+                                    </div>
+                                </div>
+
+                                <div className="flex justify-center gap-2">
+                                    {[1, 2, 3, 4, 5].map((star) => (
+                                        <button
+                                            key={star}
+                                            type="button"
+                                            onClick={() => handleItemRatingChange(item.productId, 'rating', star)}
+                                            className={`transition-all ${itemRatings[item.productId]?.rating >= star ? 'text-amber-400 scale-110' : 'text-gray-200'}`}
+                                        >
+                                            <Star size={32} fill={itemRatings[item.productId]?.rating >= star ? 'currentColor' : 'none'} />
+                                        </button>
+                                    ))}
+                                </div>
+
+                                <div>
+                                    <textarea
+                                        className="w-full px-6 py-4 rounded-3xl bg-white border border-gray-100 focus:border-red-600 outline-none transition-all font-medium text-sm min-h-[100px] resize-none shadow-sm"
+                                        placeholder="Review the fabric, fit, and embroidery detail..."
+                                        value={itemRatings[item.productId]?.comment}
+                                        onChange={e => handleItemRatingChange(item.productId, 'comment', e.target.value)}
+                                        required
+                                    />
+                                </div>
+
+                                <div className="flex items-center gap-4">
+                                    <label className={`flex-1 h-32 rounded-3xl border-2 border-dashed flex flex-col items-center justify-center cursor-pointer transition-all ${itemRatings[item.productId]?.file ? 'bg-green-50 border-green-200' : 'bg-white border-gray-200 hover:border-red-600'}`}>
+                                        {itemRatings[item.productId]?.file ? (
+                                            <div className="text-center">
+                                                <Check size={24} className="text-green-600 mx-auto mb-1" />
+                                                <p className="text-[10px] font-black text-green-600 uppercase tracking-widest">Added Artwork Photo</p>
+                                            </div>
+                                        ) : (
+                                            <>
+                                                <Camera size={24} className="text-gray-300 mb-1" />
+                                                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Add Masterpiece Photo</p>
+                                            </>
+                                        )}
+                                        <input type="file" className="hidden" accept="image/*" onChange={e => handleFileUpload(item.productId, e.target.files[0])} />
+                                    </label>
+                                    {itemRatings[item.productId]?.image && (
+                                        <div className="w-24 h-32 rounded-3xl overflow-hidden border border-gray-100 shadow-sm">
+                                            <img src={itemRatings[item.productId].image} className="w-full h-full object-cover" />
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
                         ))}
                     </div>
 
-                    <div>
-                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-3 ml-1">Your Feedback</label>
-                        <textarea
-                            className="w-full px-6 py-4 rounded-2xl bg-gray-50 border border-gray-100 focus:bg-white focus:border-red-600 outline-none transition-all font-medium text-sm min-h-[100px] resize-none"
-                            placeholder="Tell us about the quality and fit..."
-                            value={comment}
-                            onChange={e => setComment(e.target.value)}
-                        />
-                    </div>
-
-                    <div>
-                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-3 ml-1">Attach Photo (Optional)</label>
-                        <label className="w-full h-32 rounded-3xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center cursor-pointer hover:border-red-600 transition-all bg-gray-50/50 group overflow-hidden relative">
-                            {file ? (
-                                <div className="absolute inset-0 bg-green-50 flex items-center justify-center">
-                                    <div className="text-center">
-                                        <Check size={24} className="text-green-600 mx-auto mb-1" />
-                                        <p className="text-[10px] font-black text-green-600 uppercase tracking-widest">{file.name}</p>
-                                    </div>
-                                </div>
-                            ) : (
-                                <>
-                                    <Camera size={24} className="text-gray-300 group-hover:text-red-600 mb-1 transition-colors" />
-                                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Add Masterpiece Photo</p>
-                                </>
-                            )}
-                            <input type="file" className="hidden" accept="image/*" onChange={e => setFile(e.target.files[0])} />
-                        </label>
-                    </div>
-
-                    <div className="flex gap-4 pt-4">
-                        <button type="button" onClick={onClose} className="flex-1 py-4 rounded-2xl border border-gray-100 font-black text-[10px] uppercase tracking-widest text-gray-400 hover:bg-gray-50">Later</button>
-                        <button type="submit" disabled={uploading} className="flex-1 py-4 rounded-2xl bg-red-600 text-white font-black text-[10px] uppercase tracking-widest hover:bg-black transition-all shadow-xl shadow-red-100">
-                            {uploading ? 'Processing...' : 'Complete Order'}
+                    <div className="flex gap-4 pt-6 mt-6 border-t border-gray-100">
+                        <button type="button" onClick={onClose} className="flex-1 py-5 rounded-[2rem] border border-gray-100 font-black text-xs uppercase tracking-widest text-gray-400 hover:bg-gray-50 transition-all">Cancel Review</button>
+                        <button type="submit" disabled={uploading} className="flex-2 lg:w-[300px] py-5 rounded-[2rem] bg-red-600 text-white font-black text-xs uppercase tracking-widest hover:bg-black transition-all shadow-xl shadow-red-200">
+                            {uploading ? 'Finalizing...' : 'Submit All Reviews'}
                         </button>
                     </div>
                 </form>

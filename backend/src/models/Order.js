@@ -1,7 +1,6 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
 const User = require('./User');
-const { Product } = require('./Product');
 
 const Order = sequelize.define('Order', {
     id: {
@@ -73,6 +72,10 @@ const OrderItem = sequelize.define('OrderItem', {
     productId: {
         type: DataTypes.UUID,
         allowNull: false
+    },
+    isRated: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false
     }
 });
 
@@ -103,10 +106,15 @@ Order.belongsTo(User, { foreignKey: 'customerId', as: 'customer', onDelete: 'CAS
 Order.hasMany(OrderItem, { as: 'items', foreignKey: 'orderId', onDelete: 'CASCADE' });
 OrderItem.belongsTo(Order, { foreignKey: 'orderId', onDelete: 'CASCADE' });
 
+const { Product, ProductRating } = require('./Product');
+
 Product.hasMany(OrderItem, { foreignKey: 'productId', onDelete: 'CASCADE' });
-const OrderItemProductAssociation = OrderItem.belongsTo(Product, { foreignKey: 'productId', as: 'product', onDelete: 'CASCADE' });
+OrderItem.belongsTo(Product, { foreignKey: 'productId', as: 'product', onDelete: 'CASCADE' });
 
 Order.hasOne(ReturnRequest, { foreignKey: 'OrderId', as: 'returnRequest', onDelete: 'CASCADE' });
 ReturnRequest.belongsTo(Order, { foreignKey: 'OrderId', onDelete: 'CASCADE' });
+
+Order.hasMany(ProductRating, { foreignKey: 'orderId', as: 'ratings', onDelete: 'CASCADE' });
+ProductRating.belongsTo(Order, { foreignKey: 'orderId', as: 'order', onDelete: 'CASCADE' });
 
 module.exports = { Order, OrderItem, ReturnRequest };

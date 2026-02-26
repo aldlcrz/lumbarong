@@ -52,6 +52,11 @@ exports.register = async (req, res) => {
             },
             message: 'Registration successful.'
         });
+
+        // Notify admin if a seller registers
+        if (userRole === 'seller' && req.app.get('io')) {
+            req.app.get('io').emit('dashboard_update');
+        }
     } catch (error) {
         res.status(500).json({ message: 'Server error', error: error.message });
     }
@@ -200,6 +205,11 @@ exports.approveSeller = async (req, res) => {
 
         user.isVerified = true;
         await user.save();
+
+        if (req.app.get('io')) {
+            req.app.get('io').emit('dashboard_update');
+        }
+
         res.json({ message: 'Seller approved successfully' });
     } catch (error) {
         res.status(500).json({ message: 'Server error', error: error.message });
@@ -215,6 +225,11 @@ exports.revokeSeller = async (req, res) => {
 
         user.isVerified = false;
         await user.save();
+
+        if (req.app.get('io')) {
+            req.app.get('io').emit('dashboard_update');
+        }
+
         res.json({ message: 'Seller verification revoked successfully' });
     } catch (error) {
         res.status(500).json({ message: 'Server error', error: error.message });

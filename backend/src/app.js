@@ -10,6 +10,8 @@ const uploadRoutes = require('./routes/uploadRoutes');
 const chatRoutes = require('./routes/chatRoutes');
 const analyticsRoutes = require('./routes/analyticsRoutes');
 const wishlistRoutes = require('./routes/wishlistRoutes');
+const categoryRoutes = require('./routes/categoryRoutes');
+const userRoutes = require('./routes/userRoutes');
 
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
@@ -67,6 +69,8 @@ app.use('/api/v1/upload', uploadRoutes);
 app.use('/api/v1/chat', chatRoutes);
 app.use('/api/v1/analytics', analyticsRoutes);
 app.use('/api/v1/wishlist', wishlistRoutes);
+app.use('/api/v1/categories', categoryRoutes);
+app.use('/api/v1/users', userRoutes);
 
 const sequelize = require('./config/database');
 

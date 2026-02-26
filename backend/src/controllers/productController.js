@@ -1,14 +1,20 @@
-const { Product, ProductImage, ProductSize, ProductRating } = require('../models/Product');
+const { Product, ProductImage, ProductSize, ProductRating, Category } = require('../models/Product');
 const User = require('../models/User');
 const sequelize = require('../config/database');
 const { Op } = require('sequelize');
 
 exports.getProducts = async (req, res) => {
     try {
-        const { category, shop, priceMin, priceMax, search } = req.query;
+        const { category, shop, priceMin, priceMax, search, categoryId, status } = req.query;
         let where = {};
 
-        if (category) where.category = category;
+        if (status) where.status = status;
+        if (categoryId) where.CategoryId = categoryId;
+        else if (category) {
+            // Backward compatibility: Find category by name if ID isn't provided
+            const cat = await Category.findOne({ where: { name: category } });
+            if (cat) where.CategoryId = cat.id;
+        }
         if (shop) where.sellerId = shop;
         if (search) {
             where[Op.or] = [
@@ -37,10 +43,10 @@ exports.getProducts = async (req, res) => {
                 )
             },
             include: [
-                { model: User, as: 'seller', attributes: ['id', 'name', 'shopName', 'gcashNumber', 'profileImage', 'createdAt', 'isVerified'] },
+                { model: User, as: 'seller', attributes: ['id', 'name', 'shopName', 'profileImage', 'isVerified'] },
                 { model: ProductImage, as: 'images' },
                 { model: ProductSize, as: 'availableSizes' },
-                { model: ProductRating, as: 'ratings' }
+                { model: Category, as: 'category' }
             ]
         });
         res.json(products);
@@ -57,11 +63,35 @@ exports.getProductById = async (req, res) => {
                 { model: User, as: 'seller', attributes: ['id', 'name', 'shopName', 'gcashNumber', 'profileImage', 'createdAt', 'isVerified'] },
                 { model: ProductImage, as: 'images' },
                 { model: ProductSize, as: 'availableSizes' },
+                { model: Category, as: 'category' },
                 { model: ProductRating, as: 'ratings', include: [{ model: User, as: 'reviewer', attributes: ['name'] }] }
             ]
         });
         if (!product) return res.status(404).json({ message: 'Product not found' });
-        res.json(product);
+
+        // Calculate statistics
+        const ratings = product.ratings || [];
+        const totalRatings = ratings.length;
+        const averageRating = totalRatings > 0
+            ? (ratings.reduce((acc, r) => acc + r.rating, 0) / totalRatings).toFixed(1)
+            : 0;
+
+        const distribution = {
+            1: ratings.filter(r => r.rating === 1).length,
+            2: ratings.filter(r => r.rating === 2).length,
+            3: ratings.filter(r => r.rating === 3).length,
+            4: ratings.filter(r => r.rating === 4).length,
+            5: ratings.filter(r => r.rating === 5).length
+        };
+
+        const result = {
+            ...product.toJSON(),
+            averageRating,
+            totalRatings,
+            ratingDistribution: distribution
+        };
+
+        res.json(result);
     } catch (error) {
         console.error('Error in getProductById:', error);
         res.status(500).json({ message: 'Server error', error: error.message });
@@ -81,7 +111,7 @@ exports.createProduct = async (req, res) => {
             return res.status(403).json({ message: 'Your shop is pending approval. You cannot list products yet.' });
         }
 
-        const { images, name, sizes, description, price, stock, category } = req.body;
+        const { images, name, sizes, description, price, stock, categoryId, category } = req.body;
         if (!name) return res.status(400).json({ message: 'Product name is required.' });
         if (!images || images.length < 3) return res.status(400).json({ message: 'Minimum 3 images required.' });
 
@@ -96,7 +126,7 @@ exports.createProduct = async (req, res) => {
             description,
             price: productPrice,
             stock: productStock,
-            category,
+            CategoryId: categoryId || category, // Support both for now
             sellerId
         }, { transaction: t });
 
@@ -122,6 +152,11 @@ exports.createProduct = async (req, res) => {
         const createdProduct = await Product.findByPk(product.id, {
             include: [{ model: ProductImage, as: 'images' }, { model: ProductSize, as: 'availableSizes' }]
         });
+
+        if (req.app.get('io')) {
+            req.app.get('io').emit('dashboard_update');
+        }
+
         res.status(201).json(createdProduct);
     } catch (error) {
         if (t) await t.rollback();
@@ -142,11 +177,13 @@ exports.updateProduct = async (req, res) => {
             return res.status(403).json({ message: 'Not authorized' });
         }
 
-        const { images, sizes, price, stock, ...rest } = req.body;
+        const { images, sizes, price, stock, categoryId, category, ...rest } = req.body;
 
         const updateData = { ...rest };
         if (price !== undefined) updateData.price = parseFloat(price);
         if (stock !== undefined) updateData.stock = parseInt(stock);
+        if (categoryId !== undefined) updateData.CategoryId = categoryId;
+        else if (category !== undefined) updateData.CategoryId = category;
 
         await product.update(updateData, { transaction: t });
 
@@ -188,6 +225,11 @@ exports.deleteProduct = async (req, res) => {
         }
 
         await product.destroy();
+
+        if (req.app.get('io')) {
+            req.app.get('io').emit('dashboard_update');
+        }
+
         res.json({ message: 'Product deleted' });
     } catch (error) {
         console.error('Error in deleteProduct:', error);
@@ -264,6 +306,7 @@ exports.updateProductStatus = async (req, res) => {
                 status,
                 name: product.name
             });
+            io.emit('dashboard_update');
         }
 
         res.json({ message: `Product ${status} successfully`, product });

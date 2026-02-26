@@ -253,35 +253,58 @@ function FeedbackViewModal({ order, onClose }) {
                         </div>
                     </div>
                 ) : (
-                    <div className="space-y-6 mb-10">
-                        <div className="bg-green-50/50 rounded-[2rem] p-8 border border-green-100">
-                            <div className="flex items-center gap-3 mb-4">
-                                {order.rating && (
-                                    <div className="flex gap-1">
-                                        {[...Array(5)].map((_, i) => (
-                                            <Star
-                                                key={i}
-                                                size={20}
-                                                className={i < order.rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'}
-                                            />
-                                        ))}
+                    <div className="space-y-6 mb-10 max-h-[60vh] overflow-y-auto pr-4 no-scrollbar">
+                        {order.items.map((item, idx) => {
+                            const itemRating = order.ratings?.find(r => r.ProductId === item.productId);
+                            return (
+                                <div key={idx} className="bg-gray-50/50 rounded-[2rem] p-8 border border-gray-100 flex flex-col md:flex-row gap-8">
+                                    <div className="w-20 h-28 shrink-0 rounded-2xl overflow-hidden border border-gray-200">
+                                        <img src={item.product?.images?.[0]?.url} className="w-full h-full object-cover" />
                                     </div>
-                                )}
-                            </div>
-                            <p className="text-gray-700 font-medium italic leading-relaxed">
-                                {order.review || 'Customer completed the order without leaving a review.'}
-                            </p>
-                        </div>
+                                    <div className="flex-1">
+                                        <div className="flex justify-between items-start mb-4">
+                                            <div>
+                                                <h4 className="text-sm font-black text-gray-900 uppercase tracking-tight">{item.product?.name}</h4>
+                                                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest italic">{item.isRated ? 'Verified Patron Feedback' : 'Awaiting Feedback'}</p>
+                                            </div>
+                                            {item.isRated && itemRating ? (
+                                                <div className="flex gap-1 text-amber-400">
+                                                    {[...Array(5)].map((_, i) => (
+                                                        <Star
+                                                            key={i}
+                                                            size={14}
+                                                            fill={i < itemRating.rating ? 'currentColor' : 'none'}
+                                                            className={i < itemRating.rating ? '' : 'text-gray-200'}
+                                                        />
+                                                    ))}
+                                                </div>
+                                            ) : (
+                                                <div className="px-3 py-1 bg-white rounded-full border border-gray-100 text-[8px] font-black text-gray-300 uppercase tracking-widest">Pending</div>
+                                            )}
+                                        </div>
 
-                        <div className="bg-gray-50/50 rounded-[2rem] p-6 border border-gray-100">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Client</p>
-                                    <p className="font-bold text-gray-900">{order.customer?.name}</p>
+                                        {item.isRated && itemRating ? (
+                                            <>
+                                                <p className="text-sm text-gray-700 font-medium italic leading-relaxed mb-4">
+                                                    "{itemRating.review || 'No comment provided.'}"
+                                                </p>
+                                                {itemRating.images?.length > 0 && (
+                                                    <div className="flex gap-2">
+                                                        {itemRating.images.map((img, i) => (
+                                                            <div key={i} className="w-16 h-16 rounded-lg overflow-hidden border border-gray-100">
+                                                                <img src={img} className="w-full h-full object-cover" />
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </>
+                                        ) : (
+                                            <p className="text-sm text-gray-300 italic">User hasn't submitted a review for this item yet.</p>
+                                        )}
+                                    </div>
                                 </div>
-                                <CheckCircle size={24} className="text-green-600" />
-                            </div>
-                        </div>
+                            );
+                        })}
                     </div>
                 )}
 

@@ -39,8 +39,35 @@ export default function Checkout() {
         paymentMethod: 'GCash',
         referenceNumber: ''
     });
+    const [addresses, setAddresses] = useState([]);
+    const [selectedAddressId, setSelectedAddressId] = useState(null);
+    const [showAddressSelector, setShowAddressSelector] = useState(false);
     const [receiptImage, setReceiptImage] = useState(null);
     const [isUploading, setIsUploading] = useState(false);
+
+    useEffect(() => {
+        if (user) {
+            fetchAddresses();
+        }
+    }, [user]);
+
+    const fetchAddresses = async () => {
+        try {
+            const res = await api.get('/users/addresses');
+            setAddresses(res.data);
+            const defaultAddr = res.data.find(a => a.isDefault) || res.data[0];
+            if (defaultAddr) {
+                setSelectedAddressId(defaultAddr.id);
+                setFormData(prev => ({
+                    ...prev,
+                    phone: defaultAddr.phoneNumber,
+                    address: `${defaultAddr.fullName} | ${defaultAddr.street}, ${defaultAddr.barangay}, ${defaultAddr.city}, ${defaultAddr.province} ${defaultAddr.postalCode}`
+                }));
+            }
+        } catch (err) {
+            console.error('Error fetching addresses:', err);
+        }
+    };
 
     useEffect(() => {
         if (!authLoading && !user) {
@@ -252,45 +279,116 @@ export default function Checkout() {
                     <div className="bg-white rounded-[2.5rem] p-8 border border-gray-100 shadow-sm relative group overflow-hidden">
                         <div className="absolute top-0 left-0 w-1.5 h-full bg-red-600 opacity-0 group-hover:opacity-100 transition-opacity" />
                         <div className="flex items-start justify-between gap-4">
-                            <div className="flex items-start gap-4">
+                            <div className="flex items-start gap-4 flex-1">
                                 <MapPin className="text-red-600 mt-1" size={20} />
                                 <div className="space-y-4 w-full">
-                                    <div>
-                                        <div className="flex items-center gap-2 mb-1">
-                                            <p className="font-black text-gray-900 uppercase text-xs tracking-tight">{user.name}</p>
-                                            <span className="text-[10px] font-bold text-gray-400 italic">0917-XXX-XXXX</span>
-                                        </div>
-                                        <textarea
-                                            placeholder="Enter your artisan delivery address..."
-                                            className="w-full text-xs font-bold text-gray-500 bg-transparent outline-none border-none resize-none no-scrollbar h-12"
-                                            value={formData.address}
-                                            onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                                            required
-                                        />
-                                        <div className="relative mt-2">
-                                            <Smartphone className="absolute left-0 top-1/2 -translate-y-1/2 text-gray-300" size={14} />
-                                            <input
-                                                type="tel"
-                                                placeholder="Contact Number..."
-                                                className="w-full pl-6 text-xs font-bold text-gray-500 bg-transparent outline-none"
-                                                value={formData.phone}
-                                                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                                    <div className="flex items-center justify-between">
+                                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">Shipping Destination</p>
+                                        {addresses.length > 0 && (
+                                            <button
+                                                onClick={() => setShowAddressSelector(true)}
+                                                className="text-[10px] font-black text-red-600 uppercase tracking-widest hover:underline"
+                                            >
+                                                Change Address
+                                            </button>
+                                        )}
+                                    </div>
+                                    <div className="space-y-4">
+                                        <div>
+                                            <textarea
+                                                placeholder="Enter your artisan delivery address..."
+                                                className="w-full text-xs font-bold text-gray-900 bg-transparent outline-none border-none resize-none no-scrollbar h-auto min-h-[48px]"
+                                                value={formData.address}
+                                                onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                                                 required
                                             />
+                                            <div className="relative mt-2">
+                                                <Smartphone className="absolute left-0 top-1/2 -translate-y-1/2 text-red-600/30" size={14} />
+                                                <input
+                                                    type="tel"
+                                                    placeholder="Contact Number..."
+                                                    className="w-full pl-6 text-xs font-bold text-gray-900 bg-transparent outline-none"
+                                                    value={formData.phone}
+                                                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                                                    required
+                                                />
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                            <ChevronRight className="text-gray-300 mt-1" size={18} />
                         </div>
                     </div>
+
+                    {/* Address Selector Modal */}
+                    <AnimatePresence>
+                        {showAddressSelector && (
+                            <div className="fixed inset-0 z-[110] flex items-center justify-center p-6">
+                                <motion.div
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    exit={{ opacity: 0 }}
+                                    className="fixed inset-0 bg-black/40 backdrop-blur-sm"
+                                    onClick={() => setShowAddressSelector(false)}
+                                />
+                                <motion.div
+                                    initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                                    exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                                    className="bg-white rounded-[3rem] w-full max-w-lg overflow-hidden relative shadow-2xl z-20"
+                                >
+                                    <div className="p-8 lg:p-10">
+                                        <h2 className="text-2xl font-black text-gray-900 tracking-tighter italic uppercase mb-8 pr-12">Select Shipping Address</h2>
+                                        <button
+                                            onClick={() => setShowAddressSelector(false)}
+                                            className="absolute top-8 right-8 p-2 text-gray-400 hover:text-red-600 transition-colors"
+                                        >
+                                            <Plus className="rotate-45" size={24} />
+                                        </button>
+
+                                        <div className="space-y-4 max-h-[60vh] overflow-y-auto no-scrollbar pr-2">
+                                            {addresses.map(addr => (
+                                                <div
+                                                    key={addr.id}
+                                                    onClick={() => {
+                                                        setFormData({
+                                                            ...formData,
+                                                            phone: addr.phoneNumber,
+                                                            address: `${addr.fullName} | ${addr.street}, ${addr.barangay}, ${addr.city}, ${addr.province} ${addr.postalCode}`
+                                                        });
+                                                        setSelectedAddressId(addr.id);
+                                                        setShowAddressSelector(false);
+                                                    }}
+                                                    className={`p-6 rounded-2xl border-2 cursor-pointer transition-all ${selectedAddressId === addr.id ? 'border-red-600 bg-red-50/20' : 'border-gray-50 hover:border-gray-200 bg-gray-50/50'}`}
+                                                >
+                                                    <div className="flex justify-between items-start mb-3">
+                                                        <span className="text-[8px] font-black uppercase tracking-[0.2em] px-2 py-1 bg-white rounded-md text-gray-400 border border-gray-100">{addr.label}</span>
+                                                        {addr.isDefault && <span className="text-[8px] font-black uppercase tracking-widest text-red-600">Default</span>}
+                                                    </div>
+                                                    <p className="font-black text-gray-900 text-sm italic mb-1 uppercase tracking-tight">{addr.fullName}</p>
+                                                    <p className="text-[10px] text-gray-500 font-medium italic line-clamp-2">
+                                                        {addr.street}, {addr.barangay}, {addr.city}, {addr.province} {addr.postalCode}
+                                                    </p>
+                                                    <p className="mt-3 text-[10px] font-bold text-gray-400">{addr.phoneNumber}</p>
+                                                </div>
+                                            ))}
+                                        </div>
+
+                                        <Link href="/profile" className="block mt-6 text-center text-[10px] font-black text-red-600 uppercase tracking-widest hover:underline decoration-2 underline-offset-4">
+                                            + Manage Address Book
+                                        </Link>
+                                    </div>
+                                </motion.div>
+                            </div>
+                        )}
+                    </AnimatePresence>
 
                     {/* PRODUCT SECTION */}
                     {cartItems.map(item => (
                         <div key={item.product.id} className="bg-white rounded-[2.5rem] p-8 border border-gray-100 shadow-sm">
                             <div className="flex items-center gap-3 mb-6">
                                 <div className="bg-red-600 text-white px-2 py-0.5 rounded-md text-[8px] font-black uppercase">Master Artisan</div>
-                                <p className="text-[10px] font-black text-gray-900 uppercase tracking-widest">{item.product.seller?.shopName || 'Heritage Mall'}</p>
+                                <p className="text-[10px] font-black text-gray-900 uppercase tracking-widest">{item.product.seller?.shopName || 'LumBarong'}</p>
                                 <div className="flex items-center gap-1 ml-auto">
                                     <Star size={10} className="text-amber-500 fill-amber-500" />
                                     <span className="text-[10px] font-black text-gray-900">4.8</span>
@@ -378,7 +476,7 @@ export default function Checkout() {
                                                     const seller = cartItems.find(item => item.product.sellerId === sellerId)?.product.seller;
                                                     return (
                                                         <div key={sellerId} className="flex justify-between items-center text-xs">
-                                                            <span className="font-bold text-gray-500 italic">{seller?.shopName || 'Heritage Mall'}</span>
+                                                            <span className="font-bold text-gray-500 italic">{seller?.shopName || 'LumBarong'}</span>
                                                             <span className="font-black text-blue-600">{seller?.gcashNumber || '09XX-XXX-XXXX'}</span>
                                                         </div>
                                                     );

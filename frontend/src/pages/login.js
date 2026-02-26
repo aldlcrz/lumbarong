@@ -3,12 +3,13 @@ import { useRouter } from 'next/router';
 import { useAuth } from '@/context/AuthContext';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { Mail, Lock, LogIn, UserPlus, ArrowRight, ShieldCheck } from 'lucide-react';
+import { Mail, Lock, LogIn, UserPlus, ArrowRight, ShieldCheck, Eye, EyeOff } from 'lucide-react';
 
 export default function Login() {
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const { login } = useAuth();
   const router = useRouter();
 
@@ -90,13 +91,20 @@ export default function Login() {
                 <Lock className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-300" size={18} />
                 <input
                   name="password"
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   value={formData.password}
                   onChange={handleChange}
                   required
-                  className="w-full pl-14 pr-5 py-4 rounded-2xl border border-gray-100 bg-gray-50 focus:bg-white focus:border-red-600 focus:ring-1 focus:ring-red-600 outline-none transition-all font-medium"
+                  className="w-full pl-14 pr-12 py-4 rounded-2xl border border-gray-100 bg-gray-50 focus:bg-white focus:border-red-600 focus:ring-1 focus:ring-red-600 outline-none transition-all font-medium"
                   placeholder="••••••••"
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-red-600 transition-colors"
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
               </div>
             </div>
 
