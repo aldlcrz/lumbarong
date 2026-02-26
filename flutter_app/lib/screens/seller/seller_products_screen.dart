@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../../config/app_theme.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/api_client.dart';
@@ -47,16 +48,39 @@ class _SellerProductsScreenState extends State<SellerProductsScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text('Delete Product'),
-        content: const Text('Remove this product from your shop?'),
+        backgroundColor: Colors.white,
+        surfaceTintColor: Colors.transparent,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        title: const Text(
+          'Remove Product',
+          style: TextStyle(fontWeight: FontWeight.w900),
+        ),
+        content: const Text(
+          'Are you sure you want to remove this piece from your shop catalog?',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: const Text(
+              'CANCEL',
+              style: TextStyle(
+                fontWeight: FontWeight.w800,
+                color: AppTheme.textMuted,
+              ),
+            ),
           ),
-          TextButton(
+          ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Delete', style: TextStyle(color: Colors.red)),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.primary,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            child: const Text(
+              'DELETE',
+              style: TextStyle(fontWeight: FontWeight.w900, fontSize: 12),
+            ),
           ),
         ],
       ),
@@ -66,7 +90,11 @@ class _SellerProductsScreenState extends State<SellerProductsScreen> {
       await ApiClient().delete('/products/$id');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Product removed from shop')),
+          const SnackBar(
+            content: Text('Product removed from shop'),
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: AppTheme.darkSection,
+          ),
         );
         await _loadProducts();
       }
@@ -82,165 +110,178 @@ class _SellerProductsScreenState extends State<SellerProductsScreen> {
     }
     return Scaffold(
       backgroundColor: AppTheme.background,
-      appBar: AppBar(
-        title: const Text('My Products'),
-        backgroundColor: Colors.white,
-        elevation: 0,
-        actions: const [AppNavBarActions()],
-      ),
+      appBar: const LumBarongAppBar(title: 'Shop Catalog', showBack: true),
+      bottomNavigationBar: const AppBottomNav(currentIndex: 2),
       floatingActionButton: FloatingActionButton(
         onPressed: () => context.push('/seller/add-product'),
         backgroundColor: AppTheme.primary,
         foregroundColor: Colors.white,
-        child: const Icon(Icons.add),
+        elevation: 4,
+        child: const Icon(Icons.add_rounded),
       ),
-      body: Column(
-        children: [
-          const AppNavBar(),
-          Expanded(
-            child: _loading
-                ? const Center(
-                    child: CircularProgressIndicator(color: AppTheme.primary),
-                  )
-                : _products.isEmpty
-                ? Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(
-                          Icons.inventory_2,
-                          size: 60,
-                          color: AppTheme.textMuted,
-                        ),
-                        const SizedBox(height: 12),
-                        const Text(
-                          'No products yet',
-                          style: TextStyle(
-                            fontWeight: FontWeight.w700,
-                            color: AppTheme.textPrimary,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        const Text(
-                          'Add your first product to get started',
-                          style: TextStyle(
-                            color: AppTheme.textSecondary,
-                            fontSize: 13,
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        ElevatedButton.icon(
-                          onPressed: () => context.push('/seller/add-product'),
-                          icon: const Icon(Icons.add),
-                          label: const Text('Add Product'),
+      body: _loading
+          ? const Center(
+              child: CircularProgressIndicator(color: AppTheme.primary),
+            )
+          : _products.isEmpty
+          ? Center(
+              child: Padding(
+                padding: const EdgeInsets.all(40),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.inventory_2_outlined,
+                      size: 64,
+                      color: AppTheme.textMuted.withValues(alpha: 0.2),
+                    ),
+                    const SizedBox(height: 24),
+                    const Text(
+                      'No products yet.',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w800,
+                        color: AppTheme.textPrimary,
+                        fontSize: 16,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Add your first artisan piece to showcase it in the marketplace.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: AppTheme.textSecondary,
+                        fontSize: 13,
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    ElevatedButton(
+                      onPressed: () => context.push('/seller/add-product'),
+                      child: const Text('ADD MY FIRST PIECE'),
+                    ),
+                  ],
+                ),
+              ),
+            )
+          : RefreshIndicator(
+              color: AppTheme.primary,
+              onRefresh: _loadProducts,
+              child: ListView.separated(
+                padding: const EdgeInsets.all(20),
+                itemCount: _products.length,
+                separatorBuilder: (_, _) => const SizedBox(height: 16),
+                itemBuilder: (ctx, i) {
+                  final p = _products[i];
+                  final images = p['images'] as List? ?? [];
+                  final imageUrl = images.isNotEmpty
+                      ? (images.first as Map)['url']?.toString() ?? ''
+                      : '';
+                  return Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(24),
+                      border: Border.all(color: AppTheme.borderLight),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.03),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
                         ),
                       ],
                     ),
-                  )
-                : RefreshIndicator(
-                    onRefresh: _loadProducts,
-                    child: ListView.separated(
-                      padding: const EdgeInsets.all(16),
-                      itemCount: _products.length,
-                      separatorBuilder: (_, _) => const SizedBox(height: 10),
-                      itemBuilder: (ctx, i) {
-                        final p = _products[i];
-                        final images = p['images'] as List? ?? [];
-                        final imageUrl = images.isNotEmpty
-                            ? (images.first as Map)['url']?.toString() ?? ''
-                            : '';
-                        return Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(14),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.04),
-                                blurRadius: 6,
-                              ),
-                            ],
-                          ),
-                          child: Row(
+                    child: Row(
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(16),
+                          child: imageUrl.isNotEmpty
+                              ? CachedNetworkImage(
+                                  imageUrl: imageUrl,
+                                  width: 72,
+                                  height: 72,
+                                  fit: BoxFit.cover,
+                                  placeholder: (context, url) =>
+                                      Container(color: AppTheme.background),
+                                  errorWidget: (context, url, _) => Container(
+                                    width: 72,
+                                    height: 72,
+                                    color: AppTheme.background,
+                                    child: const Icon(
+                                      Icons.image_not_supported_outlined,
+                                      color: AppTheme.textMuted,
+                                      size: 28,
+                                    ),
+                                  ),
+                                )
+                              : Container(
+                                  width: 72,
+                                  height: 72,
+                                  color: AppTheme.background,
+                                  child: const Icon(
+                                    Icons.image_outlined,
+                                    color: AppTheme.textMuted,
+                                    size: 28,
+                                  ),
+                                ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(8),
-                                child: imageUrl.isNotEmpty
-                                    ? Image.network(
-                                        imageUrl,
-                                        width: 60,
-                                        height: 60,
-                                        fit: BoxFit.cover,
-                                        errorBuilder: (_, _, _) => Container(
-                                          width: 60,
-                                          height: 60,
-                                          color: const Color(0xFFF3F4F6),
-                                          child: const Icon(
-                                            Icons.image_not_supported,
-                                            size: 24,
-                                            color: AppTheme.textMuted,
-                                          ),
-                                        ),
-                                      )
-                                    : Container(
-                                        width: 60,
-                                        height: 60,
-                                        color: const Color(0xFFF3F4F6),
-                                        child: const Icon(
-                                          Icons.image,
-                                          size: 24,
-                                          color: AppTheme.textMuted,
-                                        ),
-                                      ),
+                              Text(
+                                p['name']?.toString().toUpperCase() ?? '',
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w800,
+                                  color: AppTheme.textPrimary,
+                                  letterSpacing: 0.5,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                               ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      p['name']?.toString() ?? '',
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.w700,
-                                        color: AppTheme.textPrimary,
-                                      ),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                    Text(
-                                      '₱${p['price']}',
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.w800,
-                                        color: AppTheme.primary,
-                                      ),
-                                    ),
-                                    Text(
-                                      'Stock: ${p['stock']}',
-                                      style: const TextStyle(
-                                        fontSize: 11,
-                                        color: AppTheme.textSecondary,
-                                      ),
-                                    ),
-                                  ],
+                              const SizedBox(height: 4),
+                              Text(
+                                '₱${p['price']}',
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w900,
+                                  color: AppTheme.primary,
                                 ),
                               ),
-                              IconButton(
-                                icon: const Icon(
-                                  Icons.delete_outline,
-                                  color: Colors.red,
+                              const SizedBox(height: 4),
+                              Text(
+                                '${p['stock']} units available',
+                                style: const TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w800,
+                                  color: AppTheme.textMuted,
                                 ),
-                                onPressed: () =>
-                                    _deleteProduct(p['id'].toString()),
                               ),
                             ],
                           ),
-                        );
-                      },
+                        ),
+                        const SizedBox(width: 8),
+                        GestureDetector(
+                          onTap: () => _deleteProduct(p['id'].toString()),
+                          child: Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: AppTheme.primary.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Icon(
+                              Icons.delete_outline_rounded,
+                              color: AppTheme.primary,
+                              size: 20,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-          ),
-        ],
-      ),
+                  );
+                },
+              ),
+            ),
     );
   }
 }

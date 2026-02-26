@@ -92,205 +92,289 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       context.go('/');
       return const SizedBox.shrink();
     }
+
     if (loading || product == null) {
-      return Scaffold(
+      return const Scaffold(
         backgroundColor: AppTheme.background,
-        appBar: AppBar(
-          title: const Text('Product'),
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back),
-            onPressed: () => context.pop(),
-          ),
-        ),
-        body: const Center(
-          child: CircularProgressIndicator(color: AppTheme.primary),
-        ),
+        appBar: LumBarongAppBar(title: 'Classic Piece', showBack: true),
+        body: Center(child: CircularProgressIndicator(color: AppTheme.primary)),
       );
     }
+
     final p = product!;
     final fmt = NumberFormat.currency(
       locale: 'en_PH',
       symbol: '₱',
       decimalDigits: 0,
     );
+
     return Scaffold(
       backgroundColor: AppTheme.background,
-      appBar: AppBar(
-        title: const Text(
-          'LumBarong',
-          style: TextStyle(
-            fontWeight: FontWeight.w900,
-            fontStyle: FontStyle.italic,
-            color: AppTheme.primary,
-          ),
-        ),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.pop(),
-        ),
-        actions: const [AppNavBarActions()],
-      ),
+      appBar: const LumBarongAppBar(title: 'Heritage Detail', showBack: true),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(16),
-              child: AspectRatio(
-                aspectRatio: 1,
-                child: CachedNetworkImage(
-                  imageUrl: p.imageUrl,
-                  fit: BoxFit.cover,
-                  placeholder: (context, url) => const ColoredBox(
-                    color: Color(0xFFF3F4F6),
-                    child: Center(
-                      child: CircularProgressIndicator(color: AppTheme.primary),
+            Stack(
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(32),
+                  child: AspectRatio(
+                    aspectRatio: 1,
+                    child: CachedNetworkImage(
+                      imageUrl: p.imageUrl,
+                      fit: BoxFit.cover,
+                      placeholder: (context, url) => Container(
+                        color: AppTheme.primary.withValues(alpha: 0.05),
+                      ),
+                      errorWidget: (context, url, error) => Container(
+                        color: AppTheme.primary.withValues(alpha: 0.05),
+                        child: const Icon(
+                          Icons.broken_image_outlined,
+                          size: 48,
+                          color: AppTheme.primary,
+                        ),
+                      ),
                     ),
                   ),
-                  errorWidget: (context, url, error) => const ColoredBox(
-                    color: Color(0xFFF3F4F6),
-                    child: Icon(Icons.image_not_supported, size: 48),
+                ),
+                Positioned(
+                  top: 16,
+                  right: 16,
+                  child: GestureDetector(
+                    onTap: _toggleWishlist,
+                    child: Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: const BoxDecoration(
+                        color: Colors.white,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        isWishlisted
+                            ? Icons.favorite_rounded
+                            : Icons.favorite_border_rounded,
+                        color: isWishlisted
+                            ? AppTheme.primary
+                            : AppTheme.textMuted,
+                        size: 24,
+                      ),
+                    ),
                   ),
                 ),
-              ),
+              ],
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 32),
             Row(
               children: [
                 if (p.category != null)
                   Container(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
+                      horizontal: 12,
+                      vertical: 6,
                     ),
                     decoration: BoxDecoration(
                       color: AppTheme.primary.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
-                      p.category!,
+                      p.category!.toUpperCase(),
                       style: const TextStyle(
                         fontSize: 10,
-                        fontWeight: FontWeight.w800,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 1,
                         color: AppTheme.primary,
                       ),
                     ),
                   ),
                 const Spacer(),
-                IconButton(
-                  onPressed: _toggleWishlist,
-                  icon: Icon(
-                    isWishlisted ? Icons.favorite : Icons.favorite_border,
-                    color: isWishlisted ? AppTheme.primary : null,
+                if (p.stock < 5)
+                  Text(
+                    'ONLY ${p.stock} LEFT',
+                    style: const TextStyle(
+                      color: AppTheme.primary,
+                      fontWeight: FontWeight.w900,
+                      fontSize: 10,
+                      letterSpacing: 1,
+                    ),
                   ),
-                ),
               ],
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 16),
             Text(
               p.name,
               style: const TextStyle(
-                fontSize: 22,
+                fontSize: 32,
                 fontWeight: FontWeight.w900,
                 color: AppTheme.textPrimary,
+                height: 1.1,
               ),
             ),
-            if (p.description != null && p.description!.isNotEmpty)
+            const SizedBox(height: 16),
+            Text(
+              fmt.format(p.price),
+              style: const TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.w900,
+                color: AppTheme.primary,
+              ),
+            ),
+            const SizedBox(height: 24),
+            if (p.description != null && p.description!.isNotEmpty) ...[
+              const Text(
+                'THE CRAFTSMANSHIP',
+                style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 1.5,
+                  color: AppTheme.textMuted,
+                ),
+              ),
+              const SizedBox(height: 12),
               Text(
                 p.description!,
                 style: const TextStyle(
-                  fontSize: 14,
+                  fontSize: 15,
                   color: AppTheme.textSecondary,
+                  height: 1.7,
                 ),
               ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                const Text(
-                  'Artisan Price',
-                  style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w800,
-                    color: AppTheme.textMuted,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  fmt.format(p.price),
-                  style: const TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.w900,
-                    color: AppTheme.primary,
-                  ),
-                ),
-              ],
-            ),
-            if (p.seller != null)
-              Padding(
-                padding: const EdgeInsets.only(top: 8),
-                child: Text(
-                  'Sold by ${p.seller!.shopName ?? p.seller!.name}',
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: AppTheme.textSecondary,
-                  ),
+            ],
+            const SizedBox(height: 40),
+            if (p.seller != null) ...[
+              const Text(
+                'CURATED BY',
+                style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 1.5,
+                  color: AppTheme.textMuted,
                 ),
               ),
-            const SizedBox(height: 24),
-            Row(
-              children: [
-                const Text(
-                  'Quantity',
-                  style: TextStyle(fontWeight: FontWeight.w700),
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: AppTheme.borderLight),
                 ),
-                const SizedBox(width: 16),
-                Row(
+                child: Row(
                   children: [
-                    IconButton(
-                      onPressed: quantity > 1
-                          ? () => setState(() => quantity--)
-                          : null,
-                      icon: const Icon(Icons.remove_circle_outline),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                    CircleAvatar(
+                      backgroundColor: AppTheme.primary.withValues(alpha: 0.1),
                       child: Text(
-                        '$quantity',
+                        (p.seller!.shopName ?? p.seller!.name)
+                            .substring(0, 1)
+                            .toUpperCase(),
                         style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w800,
+                          color: AppTheme.primary,
+                          fontWeight: FontWeight.w900,
                         ),
                       ),
                     ),
-                    IconButton(
-                      onPressed: quantity < (p.stock)
-                          ? () => setState(() => quantity++)
-                          : null,
-                      icon: const Icon(Icons.add_circle_outline),
+                    const SizedBox(width: 16),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          (p.seller!.shopName ?? p.seller!.name).toUpperCase(),
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w800,
+                            fontSize: 13,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                        const Text(
+                          'Authenticated Artisan',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: AppTheme.textMuted,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const Spacer(),
+                    const Icon(
+                      Icons.verified_rounded,
+                      color: Color(0xFF10B981),
+                      size: 20,
                     ),
                   ],
                 ),
-              ],
+              ),
+            ],
+            const SizedBox(height: 100), // Spacing for fab
+          ],
+        ),
+      ),
+      bottomNavigationBar: Container(
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 10,
+              offset: const Offset(0, -4),
             ),
-            const SizedBox(height: 24),
-            SizedBox(
-              width: double.infinity,
-              height: 56,
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              decoration: BoxDecoration(
+                color: AppTheme.background,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Row(
+                children: [
+                  IconButton(
+                    onPressed: quantity > 1
+                        ? () => setState(() => quantity--)
+                        : null,
+                    icon: const Icon(Icons.remove_rounded),
+                  ),
+                  Text(
+                    '$quantity',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w900,
+                      fontSize: 18,
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: quantity < p.stock
+                        ? () => setState(() => quantity++)
+                        : null,
+                    icon: const Icon(Icons.add_rounded),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
               child: ElevatedButton(
                 onPressed: () {
                   cart.addToCart(p, quantity);
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Added to cart')),
+                    const SnackBar(
+                      content: Text('Added to your collection'),
+                      behavior: SnackBarBehavior.floating,
+                      backgroundColor: AppTheme.darkSection,
+                    ),
                   );
                 },
-                child: const Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.shopping_cart),
-                    SizedBox(width: 8),
-                    Text('Add to Cart'),
-                  ],
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.primary,
+                  padding: const EdgeInsets.symmetric(vertical: 18),
+                ),
+                child: const Text(
+                  'ADD TO CART',
+                  style: TextStyle(
+                    letterSpacing: 1.5,
+                    fontWeight: FontWeight.w900,
+                  ),
                 ),
               ),
             ),

@@ -111,9 +111,16 @@ exports.createProduct = async (req, res) => {
             return res.status(403).json({ message: 'Your shop is pending approval. You cannot list products yet.' });
         }
 
-        const { images, name, sizes, description, price, stock, categoryId, category } = req.body;
+        let { images, name, sizes, description, price, stock, categoryId, category } = req.body;
+
+        // Handle uploaded files from multer-storage-cloudinary
+        if (req.files && req.files.length > 0) {
+            const uploadedUrls = req.files.map(f => f.path);
+            images = Array.isArray(images) ? [...images, ...uploadedUrls] : uploadedUrls;
+        }
+
         if (!name) return res.status(400).json({ message: 'Product name is required.' });
-        if (!images || images.length < 3) return res.status(400).json({ message: 'Minimum 3 images required.' });
+        if (!images || images.length < 3) return res.status(400).json({ message: 'Minimum 3 images required to showcase heritage.' });
 
         const productPrice = parseFloat(price);
         const productStock = parseInt(stock);
@@ -177,7 +184,13 @@ exports.updateProduct = async (req, res) => {
             return res.status(403).json({ message: 'Not authorized' });
         }
 
-        const { images, sizes, price, stock, categoryId, category, ...rest } = req.body;
+        let { images, sizes, price, stock, categoryId, category, ...rest } = req.body;
+
+        // Handle uploaded files
+        if (req.files && req.files.length > 0) {
+            const uploadedUrls = req.files.map(f => f.path);
+            images = Array.isArray(images) ? [...images, ...uploadedUrls] : uploadedUrls;
+        }
 
         const updateData = { ...rest };
         if (price !== undefined) updateData.price = parseFloat(price);

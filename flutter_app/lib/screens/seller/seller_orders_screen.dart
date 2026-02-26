@@ -67,9 +67,13 @@ class _SellerOrdersScreenState extends State<SellerOrdersScreen>
         data: {'status': status},
       );
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Order marked as $status')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Order marked as $status'),
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: AppTheme.darkSection,
+          ),
+        );
         await _loadOrders();
       }
     } catch (_) {}
@@ -84,23 +88,32 @@ class _SellerOrdersScreenState extends State<SellerOrdersScreen>
     }
     return Scaffold(
       backgroundColor: AppTheme.background,
-      appBar: AppBar(
-        title: const Text('Order Registry'),
-        backgroundColor: Colors.white,
-        elevation: 0,
-        bottom: TabBar(
-          controller: _tabController,
-          isScrollable: true,
-          labelColor: AppTheme.primary,
-          unselectedLabelColor: AppTheme.textSecondary,
-          indicatorColor: AppTheme.primary,
-          tabs: _tabs.map((t) => Tab(text: t)).toList(),
-        ),
-        actions: const [AppNavBarActions()],
-      ),
+      appBar: LumBarongAppBar(title: 'Order Registry', showBack: true),
+      bottomNavigationBar: const AppBottomNav(currentIndex: 1),
       body: Column(
         children: [
-          const AppNavBar(),
+          Container(
+            color: Colors.white,
+            child: TabBar(
+              controller: _tabController,
+              isScrollable: true,
+              labelColor: AppTheme.primary,
+              unselectedLabelColor: AppTheme.textMuted,
+              indicatorColor: AppTheme.primary,
+              indicatorWeight: 3,
+              dividerColor: AppTheme.borderLight,
+              labelStyle: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 0.5,
+              ),
+              unselectedLabelStyle: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+              ),
+              tabs: _tabs.map((t) => Tab(text: t.toUpperCase())).toList(),
+            ),
+          ),
           Expanded(
             child: _loading
                 ? const Center(
@@ -111,31 +124,37 @@ class _SellerOrdersScreenState extends State<SellerOrdersScreen>
                     children: _tabs.map((tab) {
                       final list = _filtered(tab);
                       if (list.isEmpty) {
-                        return const Center(
+                        return Center(
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Icon(
                                 Icons.shopping_bag_outlined,
-                                size: 60,
-                                color: AppTheme.textMuted,
+                                size: 64,
+                                color: AppTheme.textMuted.withValues(
+                                  alpha: 0.2,
+                                ),
                               ),
-                              SizedBox(height: 12),
+                              const SizedBox(height: 16),
                               Text(
-                                'No orders here',
-                                style: TextStyle(color: AppTheme.textSecondary),
+                                'No ${tab.toLowerCase()} orders',
+                                style: const TextStyle(
+                                  color: AppTheme.textMuted,
+                                  fontWeight: FontWeight.w600,
+                                ),
                               ),
                             ],
                           ),
                         );
                       }
                       return RefreshIndicator(
+                        color: AppTheme.primary,
                         onRefresh: _loadOrders,
                         child: ListView.separated(
-                          padding: const EdgeInsets.all(16),
+                          padding: const EdgeInsets.all(20),
                           itemCount: list.length,
                           separatorBuilder: (_, _) =>
-                              const SizedBox(height: 10),
+                              const SizedBox(height: 16),
                           itemBuilder: (ctx, i) => _OrderCard(
                             order: list[i],
                             onUpdateStatus: _updateStatus,
@@ -162,13 +181,13 @@ class _OrderCard extends StatelessWidget {
       case 'pending':
         return Colors.orange;
       case 'processing':
-        return const Color(0xFF6C63FF);
+        return const Color(0xFF6366F1);
       case 'shipped':
-        return Colors.blue;
+        return const Color(0xFF3B82F6);
       case 'delivered':
-        return const Color(0xFF43BF8E);
+        return const Color(0xFF10B981);
       case 'cancelled':
-        return Colors.red;
+        return AppTheme.primary;
       default:
         return AppTheme.textMuted;
     }
@@ -181,12 +200,17 @@ class _OrderCard extends StatelessWidget {
     final buyer = (order['buyer'] as Map?) ?? {};
     final items = (order['items'] as List?) ?? [];
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: AppTheme.borderLight),
         boxShadow: [
-          BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 6),
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
         ],
       ),
       child: Column(
@@ -196,14 +220,19 @@ class _OrderCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Order #${orderId.length > 8 ? orderId.substring(0, 8) : orderId}',
+                'ORDER #${orderId.length > 8 ? orderId.substring(0, 8).toUpperCase() : orderId.toUpperCase()}',
                 style: const TextStyle(
-                  fontWeight: FontWeight.w700,
-                  color: AppTheme.textPrimary,
+                  fontSize: 10,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 1,
+                  color: AppTheme.textMuted,
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
                   color: _statusColor(status).withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
@@ -211,57 +240,103 @@ class _OrderCard extends StatelessWidget {
                 child: Text(
                   status.toUpperCase(),
                   style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w800,
+                    fontSize: 9,
+                    fontWeight: FontWeight.w900,
                     color: _statusColor(status),
+                    letterSpacing: 0.5,
                   ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 4),
-          Text(
-            'Buyer: ${buyer['name'] ?? 'Unknown'}',
-            style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary),
-          ),
-          Text(
-            '${items.length} item(s) • ₱${order['totalAmount'] ?? 0}',
-            style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: AppTheme.background,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(
+                  Icons.person_outline,
+                  color: AppTheme.textSecondary,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      buyer['name'] ?? 'Guest Buyer',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w800,
+                        fontSize: 14,
+                        color: AppTheme.textPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      '${items.length} item(s) • Total ₱${order['totalAmount'] ?? 0}',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: AppTheme.textMuted,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
           if (status == 'pending' || status == 'processing') ...[
-            const SizedBox(height: 12),
+            const SizedBox(height: 20),
             Row(
               children: [
                 if (status == 'pending')
                   Expanded(
-                    child: OutlinedButton(
+                    child: ElevatedButton(
                       onPressed: () => onUpdateStatus(orderId, 'processing'),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: const Color(0xFF6C63FF),
-                        side: const BorderSide(color: Color(0xFF6C63FF)),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF6366F1),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
                       ),
                       child: const Text(
-                        'Process',
-                        style: TextStyle(fontSize: 12),
+                        'START PROCESSING',
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 1,
+                        ),
                       ),
                     ),
                   ),
-                if (status == 'processing') ...[
-                  const SizedBox(width: 8),
+                if (status == 'processing')
                   Expanded(
                     child: ElevatedButton(
                       onPressed: () => onUpdateStatus(orderId, 'shipped'),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue,
-                        foregroundColor: Colors.white,
+                        backgroundColor: const Color(0xFF3B82F6),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
                       ),
                       child: const Text(
-                        'Mark Shipped',
-                        style: TextStyle(fontSize: 12),
+                        'MARK AS SHIPPED',
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 1,
+                        ),
                       ),
                     ),
                   ),
-                ],
               ],
             ),
           ],

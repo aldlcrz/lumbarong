@@ -25,6 +25,10 @@ import 'screens/admin/admin_dashboard_screen.dart';
 import 'screens/admin/admin_sellers_screen.dart';
 import 'screens/admin/admin_products_screen.dart';
 import 'screens/admin/admin_settings_screen.dart';
+import 'screens/profile/address_list_screen.dart';
+import 'screens/profile/add_edit_address_screen.dart';
+import 'screens/profile/profile_screen.dart';
+import 'screens/chat_detail_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -119,6 +123,31 @@ void main() {
       GoRoute(
         path: '/admin/settings',
         builder: (context, state) => const AdminSettingsScreen(),
+      ),
+      GoRoute(
+        path: '/profile/addresses',
+        builder: (context, state) => const AddressListScreen(),
+      ),
+      GoRoute(
+        path: '/profile/addresses/add',
+        builder: (context, state) => const AddEditAddressScreen(),
+      ),
+      GoRoute(
+        path: '/profile/addresses/edit',
+        builder: (context, state) => AddEditAddressScreen(
+          initialAddress: state.extra as Map<String, dynamic>?,
+        ),
+      ),
+      GoRoute(
+        path: '/profile',
+        builder: (context, state) => const ProfileScreen(),
+      ),
+      GoRoute(
+        path: '/chat/:userId/:userName',
+        builder: (context, state) => ChatDetailScreen(
+          otherUserId: state.pathParameters['userId']!,
+          otherUserName: state.pathParameters['userName']!,
+        ),
       ),
     ],
   );

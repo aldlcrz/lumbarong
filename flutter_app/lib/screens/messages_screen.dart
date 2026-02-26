@@ -48,165 +48,177 @@ class _MessagesScreenState extends State<MessagesScreen> {
     }
     return Scaffold(
       backgroundColor: AppTheme.background,
-      appBar: AppBar(
-        title: const Text('Messages'),
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.pop(),
-        ),
-        actions: const [AppNavBarActions()],
-      ),
-      body: Column(
-        children: [
-          const AppNavBar(),
-          Expanded(
-            child: _loading
-                ? const Center(
-                    child: CircularProgressIndicator(color: AppTheme.primary),
-                  )
-                : _conversations.isEmpty
-                ? Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.chat_bubble_outline,
-                          size: 64,
-                          color: AppTheme.textMuted.withValues(alpha: 0.5),
-                        ),
-                        const SizedBox(height: 16),
-                        const Text(
-                          'No conversations yet',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w700,
-                            color: AppTheme.textPrimary,
+      appBar: const LumBarongAppBar(title: 'Conversations', showBack: true),
+      bottomNavigationBar: const AppBottomNav(currentIndex: 3),
+      body: _loading
+          ? const Center(
+              child: CircularProgressIndicator(color: AppTheme.primary),
+            )
+          : _conversations.isEmpty
+          ? Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      color: AppTheme.primary.withValues(alpha: 0.05),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      Icons.chat_bubble_outline_rounded,
+                      size: 64,
+                      color: AppTheme.primary.withValues(alpha: 0.2),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  const Text(
+                    'Silence is Golden',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w900,
+                      color: AppTheme.textPrimary,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    'Messages with sellers and customers will appear here.',
+                    style: TextStyle(color: AppTheme.textSecondary),
+                  ),
+                ],
+              ),
+            )
+          : RefreshIndicator(
+              color: AppTheme.primary,
+              onRefresh: _loadConversations,
+              child: ListView.separated(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                itemCount: _conversations.length,
+                separatorBuilder: (context, index) => const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 24),
+                  child: Divider(height: 1, color: AppTheme.borderLight),
+                ),
+                itemBuilder: (ctx, i) {
+                  final conv = _conversations[i];
+                  final otherUser = conv['otherUser'] as Map? ?? {};
+                  final lastMsg = conv['lastMessage'] ?? '';
+                  final timestamp = DateTime.parse(conv['timestamp']);
+                  final unread = conv['unreadCount'] ?? 0;
+
+                  return ListTile(
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 12,
+                    ),
+                    leading: Container(
+                      width: 56,
+                      height: 56,
+                      decoration: BoxDecoration(
+                        color: AppTheme.primary.withValues(alpha: 0.05),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Center(
+                        child: Text(
+                          (otherUser['shopName'] ?? otherUser['name'] ?? '?')
+                              .toString()
+                              .substring(0, 1)
+                              .toUpperCase(),
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w900,
+                            color: AppTheme.primary,
+                            fontSize: 20,
                           ),
                         ),
-                        const SizedBox(height: 8),
-                        const Text(
-                          'Messages with sellers and customers will appear here.',
-                          style: TextStyle(color: AppTheme.textSecondary),
+                      ),
+                    ),
+                    title: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            (otherUser['shopName'] ??
+                                    otherUser['name'] ??
+                                    'Unknown')
+                                .toString()
+                                .toUpperCase(),
+                            style: TextStyle(
+                              fontWeight: unread > 0
+                                  ? FontWeight.w900
+                                  : FontWeight.w800,
+                              color: AppTheme.textPrimary,
+                              fontSize: 13,
+                              letterSpacing: 0.5,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        Text(
+                          DateFormat.jm().format(timestamp),
+                          style: TextStyle(
+                            fontSize: 10,
+                            color: unread > 0
+                                ? AppTheme.primary
+                                : AppTheme.textMuted,
+                            fontWeight: unread > 0
+                                ? FontWeight.w800
+                                : FontWeight.w600,
+                          ),
                         ),
                       ],
                     ),
-                  )
-                : RefreshIndicator(
-                    onRefresh: _loadConversations,
-                    child: ListView.separated(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      itemCount: _conversations.length,
-                      separatorBuilder: (_, _) =>
-                          const Divider(height: 1, indent: 80),
-                      itemBuilder: (ctx, i) {
-                        final conv = _conversations[i];
-                        final otherUser = conv['otherUser'] as Map? ?? {};
-                        final lastMsg = conv['lastMessage'] ?? '';
-                        final timestamp = DateTime.parse(conv['timestamp']);
-                        final unread = conv['unreadCount'] ?? 0;
-
-                        return ListTile(
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 24,
-                            vertical: 8,
-                          ),
-                          leading: CircleAvatar(
-                            radius: 28,
-                            backgroundColor: AppTheme.primary.withValues(
-                              alpha: 0.1,
-                            ),
+                    subtitle: Padding(
+                      padding: const EdgeInsets.only(top: 4),
+                      child: Row(
+                        children: [
+                          Expanded(
                             child: Text(
-                              (otherUser['shopName'] ??
-                                      otherUser['name'] ??
-                                      '?')
-                                  .toString()
-                                  .substring(0, 1)
-                                  .toUpperCase(),
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w900,
-                                color: AppTheme.primary,
+                              lastMsg,
+                              style: TextStyle(
+                                color: unread > 0
+                                    ? AppTheme.textPrimary
+                                    : AppTheme.textSecondary,
+                                fontWeight: unread > 0
+                                    ? FontWeight.w600
+                                    : FontWeight.normal,
+                                fontSize: 13,
                               ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
-                          title: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  otherUser['shopName'] ??
-                                      otherUser['name'] ??
-                                      'Unknown',
-                                  style: TextStyle(
-                                    fontWeight: unread > 0
-                                        ? FontWeight.w900
-                                        : FontWeight.w700,
-                                    color: AppTheme.textPrimary,
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
+                          if (unread > 0)
+                            Container(
+                              margin: const EdgeInsets.only(left: 8),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: AppTheme.primary,
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: Text(
+                                '$unread',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.w900,
                                 ),
                               ),
-                              Text(
-                                DateFormat.jm().format(timestamp),
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: unread > 0
-                                      ? AppTheme.primary
-                                      : AppTheme.textMuted,
-                                  fontWeight: unread > 0
-                                      ? FontWeight.w800
-                                      : FontWeight.normal,
-                                ),
-                              ),
-                            ],
-                          ),
-                          subtitle: Row(
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  lastMsg,
-                                  style: TextStyle(
-                                    color: unread > 0
-                                        ? AppTheme.textPrimary
-                                        : AppTheme.textSecondary,
-                                    fontWeight: unread > 0
-                                        ? FontWeight.w600
-                                        : FontWeight.normal,
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                              if (unread > 0)
-                                Container(
-                                  padding: const EdgeInsets.all(6),
-                                  decoration: const BoxDecoration(
-                                    color: AppTheme.primary,
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: Text(
-                                    '$unread',
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.w900,
-                                    ),
-                                  ),
-                                ),
-                            ],
-                          ),
-                          onTap: () {
-                            // Potentially navigate to detailed chat screen
-                          },
-                        );
-                      },
+                            ),
+                        ],
+                      ),
                     ),
-                  ),
-          ),
-        ],
-      ),
+                    onTap: () {
+                      context.push(
+                        '/chat/${otherUser['id']}/${otherUser['shopName'] ?? otherUser['name']}',
+                      );
+                    },
+                  );
+                },
+              ),
+            ),
     );
   }
 }

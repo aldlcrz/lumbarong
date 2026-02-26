@@ -55,14 +55,21 @@ class _AdminSellersScreenState extends State<AdminSellersScreen>
       await ApiClient().put('/auth/approve-seller/$id');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Seller approved successfully')),
+          const SnackBar(
+            content: Text('Artisan approved for commerce'),
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: AppTheme.darkSection,
+          ),
         );
         await _loadSellers();
       }
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Failed to approve seller')),
+          const SnackBar(
+            content: Text('Failed to approve artisan'),
+            behavior: SnackBarBehavior.floating,
+          ),
         );
       }
     }
@@ -73,7 +80,11 @@ class _AdminSellersScreenState extends State<AdminSellersScreen>
       await ApiClient().put('/auth/revoke-seller/$id');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Seller verification revoked')),
+          const SnackBar(
+            content: Text('Artisan verification revoked'),
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: AppTheme.darkSection,
+          ),
         );
         await _loadSellers();
       }
@@ -89,25 +100,34 @@ class _AdminSellersScreenState extends State<AdminSellersScreen>
     }
     return Scaffold(
       backgroundColor: AppTheme.background,
-      appBar: AppBar(
-        title: const Text('Manage Sellers'),
-        backgroundColor: Colors.white,
-        elevation: 0,
-        bottom: TabBar(
-          controller: _tabController,
-          labelColor: AppTheme.primary,
-          unselectedLabelColor: AppTheme.textSecondary,
-          indicatorColor: AppTheme.primary,
-          tabs: [
-            Tab(text: 'Pending (${_pending.length})'),
-            Tab(text: 'Verified (${_verified.length})'),
-          ],
-        ),
-        actions: const [AppNavBarActions()],
-      ),
+      appBar: LumBarongAppBar(title: 'Manage Artisans', showBack: true),
+      bottomNavigationBar: const AppBottomNav(currentIndex: 1),
       body: Column(
         children: [
-          const AppNavBar(),
+          Container(
+            color: Colors.white,
+            child: TabBar(
+              controller: _tabController,
+              labelColor: AppTheme.primary,
+              unselectedLabelColor: AppTheme.textMuted,
+              indicatorColor: AppTheme.primary,
+              indicatorWeight: 3,
+              dividerColor: AppTheme.borderLight,
+              labelStyle: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 1,
+              ),
+              unselectedLabelStyle: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+              ),
+              tabs: [
+                Tab(text: 'PENDING (${_pending.length})'),
+                Tab(text: 'VERIFIED (${_verified.length})'),
+              ],
+            ),
+          ),
           Expanded(
             child: _loading
                 ? const Center(
@@ -153,113 +173,147 @@ class _SellerList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (sellers.isEmpty) {
-      return const Center(
+      return Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
-              Icons.store_mall_directory,
-              size: 60,
-              color: AppTheme.textMuted,
+              Icons.storefront_outlined,
+              size: 64,
+              color: AppTheme.textMuted.withValues(alpha: 0.2),
             ),
-            SizedBox(height: 12),
-            Text(
-              'No sellers here',
-              style: TextStyle(color: AppTheme.textSecondary),
+            const SizedBox(height: 16),
+            const Text(
+              'No artisans found',
+              style: TextStyle(
+                color: AppTheme.textMuted,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ],
         ),
       );
     }
     return RefreshIndicator(
+      color: AppTheme.primary,
       onRefresh: () async {},
       child: ListView.separated(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(20),
         itemCount: sellers.length,
         separatorBuilder: (_, _) => const SizedBox(height: 12),
         itemBuilder: (context, i) {
           final s = sellers[i];
           return Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(color: AppTheme.borderLight),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.04),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
+                  color: Colors.black.withValues(alpha: 0.03),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
                 ),
               ],
             ),
             child: Row(
               children: [
-                CircleAvatar(
-                  radius: 24,
-                  backgroundColor: AppTheme.primary.withValues(alpha: 0.1),
-                  child: Text(
-                    (s['name']?.toString() ?? '?')
-                        .substring(0, 1)
-                        .toUpperCase(),
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w900,
-                      color: AppTheme.primary,
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: AppTheme.primary.withValues(alpha: 0.05),
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: Center(
+                    child: Text(
+                      (s['name']?.toString() ?? '?')
+                          .substring(0, 1)
+                          .toUpperCase(),
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w900,
+                        color: AppTheme.primary,
+                        fontSize: 18,
+                      ),
                     ),
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 16),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        s['shopName']?.toString() ??
-                            s['name']?.toString() ??
-                            'Unknown',
+                        (s['shopName']?.toString() ??
+                                s['name']?.toString() ??
+                                'Artisan')
+                            .toUpperCase(),
                         style: const TextStyle(
-                          fontWeight: FontWeight.w700,
+                          fontWeight: FontWeight.w800,
                           color: AppTheme.textPrimary,
+                          fontSize: 13,
+                          letterSpacing: 0.5,
                         ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
+                      const SizedBox(height: 2),
                       Text(
                         s['email']?.toString() ?? '',
                         style: const TextStyle(
-                          fontSize: 12,
-                          color: AppTheme.textSecondary,
+                          fontSize: 11,
+                          color: AppTheme.textMuted,
                         ),
                       ),
                     ],
                   ),
                 ),
+                const SizedBox(width: 12),
                 if (showApprove)
                   ElevatedButton(
                     onPressed: () => onApprove?.call(s['id'].toString()),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF43BF8E),
-                      foregroundColor: Colors.white,
+                      backgroundColor: const Color(0xFF10B981),
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
+                        horizontal: 16,
                         vertical: 8,
                       ),
-                      textStyle: const TextStyle(fontSize: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                     ),
-                    child: const Text('Approve'),
+                    child: const Text(
+                      'APPROVE',
+                      style: TextStyle(
+                        fontSize: 9,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
                   ),
                 if (showRevoke)
                   OutlinedButton(
                     onPressed: () => onRevoke?.call(s['id'].toString()),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: AppTheme.primary,
-                      side: BorderSide(
-                        color: AppTheme.primary.withValues(alpha: 0.5),
-                      ),
+                      side: const BorderSide(color: AppTheme.primary),
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
+                        horizontal: 16,
                         vertical: 8,
                       ),
-                      textStyle: const TextStyle(fontSize: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                     ),
-                    child: const Text('Revoke'),
+                    child: const Text(
+                      'REVOKE',
+                      style: TextStyle(
+                        fontSize: 9,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
                   ),
               ],
             ),

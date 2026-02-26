@@ -44,16 +44,39 @@ class _AdminProductsScreenState extends State<AdminProductsScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text('Delete Product'),
-        content: const Text('Are you sure you want to delete this product?'),
+        backgroundColor: Colors.white,
+        surfaceTintColor: Colors.transparent,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        title: const Text(
+          'Delete Product',
+          style: TextStyle(fontWeight: FontWeight.w900),
+        ),
+        content: const Text(
+          'Are you sure you want to permanently remove this product from the platform?',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: const Text(
+              'CANCEL',
+              style: TextStyle(
+                fontWeight: FontWeight.w800,
+                color: AppTheme.textMuted,
+              ),
+            ),
           ),
-          TextButton(
+          ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Delete', style: TextStyle(color: Colors.red)),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.primary,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            child: const Text(
+              'DELETE',
+              style: TextStyle(fontWeight: FontWeight.w900, fontSize: 12),
+            ),
           ),
         ],
       ),
@@ -62,15 +85,22 @@ class _AdminProductsScreenState extends State<AdminProductsScreen> {
     try {
       await ApiClient().delete('/products/$id');
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Product deleted')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Product deleted from platform'),
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: AppTheme.darkSection,
+          ),
+        );
         await _loadProducts();
       }
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Failed to delete product')),
+          const SnackBar(
+            content: Text('Failed to delete product'),
+            behavior: SnackBarBehavior.floating,
+          ),
         );
       }
     }
@@ -85,30 +115,28 @@ class _AdminProductsScreenState extends State<AdminProductsScreen> {
     }
     return Scaffold(
       backgroundColor: AppTheme.background,
-      appBar: AppBar(
-        title: const Text('Manage Products'),
-        backgroundColor: Colors.white,
-        elevation: 0,
-        actions: const [AppNavBarActions()],
-      ),
+      appBar: const LumBarongAppBar(title: 'Global Catalog', showBack: true),
+      bottomNavigationBar: const AppBottomNav(currentIndex: 2),
       body: Column(
         children: [
-          const AppNavBar(),
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+            padding: const EdgeInsets.all(20),
             child: TextField(
               onSubmitted: (v) {
                 setState(() => _search = v);
                 _loadProducts();
               },
               decoration: InputDecoration(
-                hintText: 'Search products...',
-                prefixIcon: const Icon(Icons.search),
-                contentPadding: const EdgeInsets.symmetric(vertical: 0),
+                hintText: 'Search across all artisans...',
+                prefixIcon: const Icon(Icons.search_rounded),
                 filled: true,
                 fillColor: Colors.white,
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 0,
+                ),
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(16),
                   borderSide: BorderSide.none,
                 ),
               ),
@@ -120,41 +148,50 @@ class _AdminProductsScreenState extends State<AdminProductsScreen> {
                     child: CircularProgressIndicator(color: AppTheme.primary),
                   )
                 : _products.isEmpty
-                ? const Center(
+                ? Center(
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Icon(
-                          Icons.inventory_2,
-                          size: 60,
-                          color: AppTheme.textMuted,
+                          Icons.search_off_rounded,
+                          size: 64,
+                          color: AppTheme.textMuted.withValues(alpha: 0.2),
                         ),
-                        SizedBox(height: 12),
-                        Text(
-                          'No products found',
-                          style: TextStyle(color: AppTheme.textSecondary),
+                        const SizedBox(height: 16),
+                        const Text(
+                          'No products found.',
+                          style: TextStyle(
+                            color: AppTheme.textMuted,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ],
                     ),
                   )
                 : RefreshIndicator(
+                    color: AppTheme.primary,
                     onRefresh: _loadProducts,
                     child: ListView.separated(
-                      padding: const EdgeInsets.all(16),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 0,
+                      ),
                       itemCount: _products.length,
-                      separatorBuilder: (_, _) => const SizedBox(height: 10),
+                      separatorBuilder: (_, _) => const SizedBox(height: 12),
                       itemBuilder: (ctx, i) {
                         final p = _products[i];
                         final seller = p['seller'] as Map? ?? {};
                         return Container(
-                          padding: const EdgeInsets.all(12),
+                          padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
                             color: Colors.white,
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(color: AppTheme.borderLight),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.04),
-                                blurRadius: 6,
+                                color: Colors.black.withValues(alpha: 0.03),
+                                blurRadius: 10,
+                                offset: const Offset(0, 4),
                               ),
                             ],
                           ),
@@ -165,38 +202,55 @@ class _AdminProductsScreenState extends State<AdminProductsScreen> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      p['name']?.toString() ?? '',
+                                      p['name']?.toString().toUpperCase() ?? '',
                                       style: const TextStyle(
-                                        fontWeight: FontWeight.w700,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w800,
                                         color: AppTheme.textPrimary,
+                                        letterSpacing: 0.5,
                                       ),
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                     ),
+                                    const SizedBox(height: 4),
                                     Text(
                                       '₱${p['price']} • Stock: ${p['stock']}',
                                       style: const TextStyle(
-                                        fontSize: 12,
-                                        color: AppTheme.textSecondary,
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w900,
+                                        color: AppTheme.primary,
                                       ),
                                     ),
+                                    const SizedBox(height: 2),
                                     Text(
-                                      'Seller: ${seller['shopName'] ?? seller['name'] ?? 'Unknown'}',
+                                      'BY ${(seller['shopName'] ?? seller['name'] ?? 'ARTISAN').toString().toUpperCase()}',
                                       style: const TextStyle(
-                                        fontSize: 11,
+                                        fontSize: 9,
+                                        fontWeight: FontWeight.w800,
                                         color: AppTheme.textMuted,
+                                        letterSpacing: 0.5,
                                       ),
                                     ),
                                   ],
                                 ),
                               ),
-                              IconButton(
-                                icon: const Icon(
-                                  Icons.delete_outline,
-                                  color: Colors.red,
+                              const SizedBox(width: 8),
+                              GestureDetector(
+                                onTap: () => _deleteProduct(p['id'].toString()),
+                                child: Container(
+                                  padding: const EdgeInsets.all(10),
+                                  decoration: BoxDecoration(
+                                    color: AppTheme.primary.withValues(
+                                      alpha: 0.1,
+                                    ),
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: const Icon(
+                                    Icons.delete_outline_rounded,
+                                    color: AppTheme.primary,
+                                    size: 20,
+                                  ),
                                 ),
-                                onPressed: () =>
-                                    _deleteProduct(p['id'].toString()),
                               ),
                             ],
                           ),
@@ -205,6 +259,7 @@ class _AdminProductsScreenState extends State<AdminProductsScreen> {
                     ),
                   ),
           ),
+          const SizedBox(height: 20),
         ],
       ),
     );

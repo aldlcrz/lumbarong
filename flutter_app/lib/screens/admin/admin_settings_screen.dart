@@ -18,171 +18,172 @@ class AdminSettingsScreen extends StatelessWidget {
     final user = auth.user!;
     return Scaffold(
       backgroundColor: AppTheme.background,
-      appBar: AppBar(
-        title: const Text('System Settings'),
-        backgroundColor: Colors.white,
-        elevation: 0,
-        actions: const [AppNavBarActions()],
-      ),
-      body: Column(
-        children: [
-          const AppNavBar(),
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(24),
+      appBar: const LumBarongAppBar(title: 'Admin Account', showBack: true),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Admin Profile Section
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(32),
+              decoration: BoxDecoration(
+                color: AppTheme.darkSection,
+                borderRadius: BorderRadius.circular(32),
+              ),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Admin Profile Section
                   Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(24),
+                    width: 80,
+                    height: 80,
                     decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.05),
-                          blurRadius: 12,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
+                      color: Colors.white.withValues(alpha: 0.1),
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.2),
+                      ),
                     ),
-                    child: Column(
-                      children: [
-                        CircleAvatar(
-                          radius: 36,
-                          backgroundColor: AppTheme.primary.withValues(
-                            alpha: 0.1,
-                          ),
-                          child: Text(
-                            user.name.substring(0, 1).toUpperCase(),
-                            style: const TextStyle(
-                              fontSize: 28,
-                              fontWeight: FontWeight.w900,
-                              color: AppTheme.primary,
-                            ),
-                          ),
+                    child: Center(
+                      child: Text(
+                        user.name.substring(0, 1).toUpperCase(),
+                        style: const TextStyle(
+                          fontSize: 32,
+                          fontWeight: FontWeight.w900,
+                          color: Colors.white,
                         ),
-                        const SizedBox(height: 12),
-                        Text(
-                          user.name,
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w900,
-                            color: AppTheme.textPrimary,
-                          ),
-                        ),
-                        Text(
-                          user.email,
-                          style: const TextStyle(color: AppTheme.textSecondary),
-                        ),
-                        const SizedBox(height: 8),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: AppTheme.primary.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: const Text(
-                            'Administrator',
-                            style: TextStyle(
-                              color: AppTheme.primary,
-                              fontWeight: FontWeight.w700,
-                              fontSize: 12,
-                            ),
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
                   ),
-                  const SizedBox(height: 24),
-                  const Text(
-                    'Platform Settings',
+                  const SizedBox(height: 20),
+                  Text(
+                    user.name,
+                    style: const TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w900,
+                      color: Colors.white,
+                    ),
+                  ),
+                  Text(
+                    user.email,
                     style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w800,
-                      color: AppTheme.textPrimary,
+                      color: Colors.white.withValues(alpha: 0.6),
                     ),
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 16),
                   Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
                     decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(16),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.04),
-                          blurRadius: 8,
-                        ),
-                      ],
+                      color: AppTheme.primary.withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: AppTheme.primary.withValues(alpha: 0.3),
+                      ),
                     ),
-                    child: Column(
-                      children: [
-                        _SettingsTile(
-                          icon: Icons.people,
-                          title: 'Manage Sellers',
-                          subtitle: 'Approve or revoke seller accounts',
-                          onTap: () => context.go('/admin/sellers'),
-                        ),
-                        const Divider(height: 1, indent: 56),
-                        _SettingsTile(
-                          icon: Icons.inventory_2,
-                          title: 'Manage Products',
-                          subtitle: 'View and moderate all listings',
-                          onTap: () => context.go('/admin/products'),
-                        ),
-                        const Divider(height: 1, indent: 56),
-                        _SettingsTile(
-                          icon: Icons.dashboard,
-                          title: 'Admin Dashboard',
-                          subtitle: 'Platform stats and overview',
-                          onTap: () => context.go('/admin/dashboard'),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  const Text(
-                    'Account',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w800,
-                      color: AppTheme.textPrimary,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(16),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.04),
-                          blurRadius: 8,
-                        ),
-                      ],
-                    ),
-                    child: _SettingsTile(
-                      icon: Icons.logout,
-                      title: 'Sign Out',
-                      subtitle: 'Log out of the admin panel',
-                      iconColor: Colors.red,
-                      onTap: () async {
-                        await auth.logout();
-                        if (context.mounted) context.go('/');
-                      },
+                    child: const Text(
+                      'SYSTEM ADMINISTRATOR',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w900,
+                        fontSize: 10,
+                        letterSpacing: 1,
+                      ),
                     ),
                   ),
                 ],
               ),
             ),
+            const SizedBox(height: 40),
+            const _SectionLabel(text: 'PLATFORM CONTROLS'),
+            const SizedBox(height: 16),
+            _SettingsGroup(
+              children: [
+                _SettingsTile(
+                  icon: Icons.people_outline,
+                  title: 'Manage Sellers',
+                  subtitle: 'Approve or revoke seller accounts',
+                  onTap: () => context.go('/admin/sellers'),
+                ),
+                _SettingsTile(
+                  icon: Icons.inventory_2_outlined,
+                  title: 'Manage Products',
+                  subtitle: 'View and moderate all listings',
+                  onTap: () => context.go('/admin/products'),
+                ),
+                _SettingsTile(
+                  icon: Icons.dashboard_outlined,
+                  title: 'Admin Dashboard',
+                  subtitle: 'Platform stats and overview',
+                  onTap: () => context.go('/admin/dashboard'),
+                ),
+              ],
+            ),
+            const SizedBox(height: 32),
+            const _SectionLabel(text: 'SESSION'),
+            const SizedBox(height: 16),
+            _SettingsGroup(
+              children: [
+                _SettingsTile(
+                  icon: Icons.logout_rounded,
+                  title: 'Sign Out',
+                  subtitle: 'Safely terminate admin session',
+                  iconColor: AppTheme.primary,
+                  onTap: () async {
+                    await auth.logout();
+                    if (context.mounted) context.go('/');
+                  },
+                ),
+              ],
+            ),
+            const SizedBox(height: 40),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _SectionLabel extends StatelessWidget {
+  final String text;
+  const _SectionLabel({required this.text});
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      text,
+      style: const TextStyle(
+        fontSize: 10,
+        fontWeight: FontWeight.w800,
+        letterSpacing: 1.5,
+        color: AppTheme.textMuted,
+      ),
+    );
+  }
+}
+
+class _SettingsGroup extends StatelessWidget {
+  final List<Widget> children;
+  const _SettingsGroup({required this.children});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: AppTheme.borderLight),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
+      child: Column(children: children),
     );
   }
 }
@@ -199,25 +200,38 @@ class _SettingsTile extends StatelessWidget {
     required this.title,
     required this.subtitle,
     required this.onTap,
-    this.iconColor = AppTheme.primary,
+    this.iconColor = AppTheme.textPrimary,
   });
 
   @override
   Widget build(BuildContext context) {
     return ListTile(
-      leading: Icon(icon, color: iconColor),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+      leading: Container(
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: iconColor.withValues(alpha: 0.05),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Icon(icon, color: iconColor, size: 22),
+      ),
       title: Text(
         title,
         style: const TextStyle(
-          fontWeight: FontWeight.w700,
+          fontWeight: FontWeight.w800,
           color: AppTheme.textPrimary,
+          fontSize: 14,
         ),
       ),
       subtitle: Text(
         subtitle,
-        style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+        style: const TextStyle(fontSize: 12, color: AppTheme.textMuted),
       ),
-      trailing: const Icon(Icons.chevron_right, color: AppTheme.textMuted),
+      trailing: const Icon(
+        Icons.chevron_right_rounded,
+        color: AppTheme.textMuted,
+        size: 20,
+      ),
       onTap: onTap,
     );
   }

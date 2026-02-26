@@ -50,16 +50,23 @@ class _SellerInventoryScreenState extends State<SellerInventoryScreen> {
         data: {'stock': newStock},
       );
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Stock updated')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Stock updated'),
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: AppTheme.darkSection,
+          ),
+        );
         await _loadProducts();
       }
     } catch (_) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Failed to update stock')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Failed to update stock'),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
       }
     }
   }
@@ -69,16 +76,44 @@ class _SellerInventoryScreenState extends State<SellerInventoryScreen> {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        title: Text('Update Stock: ${product['name']}'),
-        content: TextField(
-          controller: controller,
-          keyboardType: TextInputType.number,
-          decoration: const InputDecoration(labelText: 'New Stock Quantity'),
+        backgroundColor: Colors.white,
+        surfaceTintColor: Colors.transparent,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        title: Text(
+          'Update Stock',
+          style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 18),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              product['name']?.toString() ?? '',
+              style: const TextStyle(
+                color: AppTheme.textSecondary,
+                fontSize: 14,
+              ),
+            ),
+            const SizedBox(height: 20),
+            TextField(
+              controller: controller,
+              keyboardType: TextInputType.number,
+              autofocus: true,
+              decoration: const InputDecoration(labelText: 'QUANTITY'),
+            ),
+          ],
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: const Text(
+              'CANCEL',
+              style: TextStyle(
+                fontWeight: FontWeight.w800,
+                color: AppTheme.textMuted,
+                fontSize: 12,
+              ),
+            ),
           ),
           ElevatedButton(
             onPressed: () {
@@ -88,7 +123,20 @@ class _SellerInventoryScreenState extends State<SellerInventoryScreen> {
                 _updateStock(product['id'].toString(), newStock);
               }
             },
-            child: const Text('Update'),
+            style: ElevatedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            child: const Text(
+              'UPDATE',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 1,
+              ),
+            ),
           ),
         ],
       ),
@@ -112,103 +160,91 @@ class _SellerInventoryScreenState extends State<SellerInventoryScreen> {
 
     return Scaffold(
       backgroundColor: AppTheme.background,
-      appBar: AppBar(
-        title: const Text('Inventory'),
-        backgroundColor: Colors.white,
-        elevation: 0,
-        actions: const [AppNavBarActions()],
-      ),
-      body: Column(
-        children: [
-          const AppNavBar(),
-          Expanded(
-            child: _loading
-                ? const Center(
-                    child: CircularProgressIndicator(color: AppTheme.primary),
-                  )
-                : RefreshIndicator(
-                    onRefresh: _loadProducts,
-                    child: SingleChildScrollView(
-                      physics: const AlwaysScrollableScrollPhysics(),
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          if (lowStock.isNotEmpty) ...[
-                            Row(
-                              children: [
-                                const Icon(
-                                  Icons.warning_amber,
-                                  color: Colors.orange,
-                                  size: 18,
-                                ),
-                                const SizedBox(width: 6),
-                                Text(
-                                  'Low Stock (${lowStock.length})',
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.w800,
-                                    color: Colors.orange,
-                                    fontSize: 14,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 8),
-                            ...lowStock.map(
-                              (p) => _InventoryTile(
-                                product: p,
-                                isLowStock: true,
-                                onEdit: _showEditStockDialog,
-                              ),
-                            ),
-                            const SizedBox(height: 16),
-                          ],
-                          if (inStock.isNotEmpty) ...[
-                            Text(
-                              'In Stock (${inStock.length})',
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w800,
-                                color: AppTheme.textPrimary,
-                                fontSize: 14,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            ...inStock.map(
-                              (p) => _InventoryTile(
-                                product: p,
-                                isLowStock: false,
-                                onEdit: _showEditStockDialog,
-                              ),
-                            ),
-                          ],
-                          if (_products.isEmpty)
-                            const Center(
-                              child: Padding(
-                                padding: EdgeInsets.only(top: 60),
-                                child: Column(
-                                  children: [
-                                    Icon(
-                                      Icons.inventory_2,
-                                      size: 60,
-                                      color: AppTheme.textMuted,
-                                    ),
-                                    SizedBox(height: 12),
-                                    Text(
-                                      'No products in inventory',
-                                      style: TextStyle(
-                                        color: AppTheme.textSecondary,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                        ],
+      appBar: const LumBarongAppBar(title: 'Inventory Control', showBack: true),
+      bottomNavigationBar: const AppBottomNav(currentIndex: 2),
+      body: _loading
+          ? const Center(
+              child: CircularProgressIndicator(color: AppTheme.primary),
+            )
+          : RefreshIndicator(
+              color: AppTheme.primary,
+              onRefresh: _loadProducts,
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (lowStock.isNotEmpty) ...[
+                      const _SectionLabel(text: 'CRITICAL STOCK ALERT'),
+                      const SizedBox(height: 16),
+                      ...lowStock.map(
+                        (p) => _InventoryTile(
+                          product: p,
+                          isLowStock: true,
+                          onEdit: _showEditStockDialog,
+                        ),
                       ),
-                    ),
-                  ),
-          ),
-        ],
+                      const SizedBox(height: 32),
+                    ],
+                    if (inStock.isNotEmpty) ...[
+                      const _SectionLabel(text: 'ACTIVE INVENTORY'),
+                      const SizedBox(height: 16),
+                      ...inStock.map(
+                        (p) => _InventoryTile(
+                          product: p,
+                          isLowStock: false,
+                          onEdit: _showEditStockDialog,
+                        ),
+                      ),
+                    ],
+                    if (_products.isEmpty)
+                      Center(
+                        child: Padding(
+                          padding: const EdgeInsets.only(top: 80),
+                          child: Column(
+                            children: [
+                              Icon(
+                                Icons.inventory_2_outlined,
+                                size: 64,
+                                color: AppTheme.textMuted.withValues(
+                                  alpha: 0.2,
+                                ),
+                              ),
+                              const SizedBox(height: 20),
+                              const Text(
+                                'No products in inventory.',
+                                style: TextStyle(
+                                  color: AppTheme.textMuted,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    const SizedBox(height: 32),
+                  ],
+                ),
+              ),
+            ),
+    );
+  }
+}
+
+class _SectionLabel extends StatelessWidget {
+  final String text;
+  const _SectionLabel({required this.text});
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      text,
+      style: const TextStyle(
+        fontSize: 10,
+        fontWeight: FontWeight.w800,
+        letterSpacing: 1.5,
+        color: AppTheme.textMuted,
       ),
     );
   }
@@ -229,16 +265,22 @@ class _InventoryTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final stock = product['stock'] as int? ?? 0;
     return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.all(14),
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: isLowStock
-            ? Border.all(color: Colors.orange.withValues(alpha: 0.4))
-            : null,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          color: isLowStock
+              ? AppTheme.primary.withValues(alpha: 0.3)
+              : AppTheme.borderLight,
+        ),
         boxShadow: [
-          BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 6),
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
         ],
       ),
       child: Row(
@@ -248,45 +290,77 @@ class _InventoryTile extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  product['name']?.toString() ?? '',
+                  product['name']?.toString().toUpperCase() ?? '',
                   style: const TextStyle(
-                    fontWeight: FontWeight.w700,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w800,
                     color: AppTheme.textPrimary,
+                    letterSpacing: 0.5,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
+                const SizedBox(height: 4),
                 Text(
-                  '₱${product['price']} • ${product['category'] ?? 'Uncategorized'}',
+                  '₱${product['price']} • ${product['category'] ?? 'Heritage Craft'}',
                   style: const TextStyle(
-                    fontSize: 12,
-                    color: AppTheme.textSecondary,
+                    fontSize: 11,
+                    color: AppTheme.textMuted,
                   ),
                 ),
               ],
             ),
           ),
+          const SizedBox(width: 16),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
               color: isLowStock
-                  ? Colors.orange.withValues(alpha: 0.1)
-                  : const Color(0xFF43BF8E).withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(8),
+                  ? AppTheme.primary.withValues(alpha: 0.1)
+                  : const Color(0xFF10B981).withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(10),
             ),
-            child: Text(
-              '$stock left',
-              style: TextStyle(
-                fontWeight: FontWeight.w800,
-                fontSize: 13,
-                color: isLowStock ? Colors.orange : const Color(0xFF43BF8E),
-              ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (isLowStock)
+                  const Padding(
+                    padding: EdgeInsets.only(right: 6),
+                    child: Icon(
+                      Icons.warning_amber_rounded,
+                      color: AppTheme.primary,
+                      size: 14,
+                    ),
+                  ),
+                Text(
+                  '$stock UNITS',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w900,
+                    fontSize: 10,
+                    color: isLowStock
+                        ? AppTheme.primary
+                        : const Color(0xFF10B981),
+                    letterSpacing: 0.5,
+                  ),
+                ),
+              ],
             ),
           ),
-          const SizedBox(width: 8),
-          IconButton(
-            icon: const Icon(Icons.edit_outlined, size: 20),
-            onPressed: () => onEdit(product),
+          const SizedBox(width: 12),
+          GestureDetector(
+            onTap: () => onEdit(product),
+            child: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: AppTheme.background,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Icon(
+                Icons.edit_outlined,
+                size: 18,
+                color: AppTheme.textPrimary,
+              ),
+            ),
           ),
         ],
       ),
