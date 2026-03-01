@@ -16,7 +16,9 @@ class CartScreen extends StatelessWidget {
     final auth = context.watch<AuthProvider>();
     final cart = context.watch<CartProvider>();
     if (!auth.isLoggedIn) {
-      context.go('/');
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (context.mounted) context.go('/');
+      });
       return const SizedBox.shrink();
     }
 
@@ -33,50 +35,69 @@ class CartScreen extends StatelessWidget {
       body: cart.cartCount == 0
           ? Center(
               child: Padding(
-                padding: const EdgeInsets.all(32),
+                padding: const EdgeInsets.all(40),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Container(
                       padding: const EdgeInsets.all(32),
                       decoration: BoxDecoration(
-                        color: AppTheme.primary.withValues(alpha: 0.05),
+                        color: AppTheme.primary.withValues(alpha: 0.03),
                         shape: BoxShape.circle,
+                        border: Border.all(
+                          color: AppTheme.primary.withValues(alpha: 0.1),
+                        ),
                       ),
                       child: Icon(
                         Icons.shopping_bag_outlined,
-                        size: 80,
-                        color: AppTheme.primary.withValues(alpha: 0.2),
+                        size: 72,
+                        color: AppTheme.primary.withValues(alpha: 0.3),
                       ),
                     ),
-                    const SizedBox(height: 32),
+                    const SizedBox(height: 40),
                     const Text(
-                      'Your Collection is Empty',
+                      'COLECTION IS EMPTY',
                       style: TextStyle(
-                        fontSize: 24,
+                        fontSize: 12,
                         fontWeight: FontWeight.w900,
-                        color: AppTheme.textPrimary,
+                        letterSpacing: 2.5,
+                        color: AppTheme.textMuted,
                       ),
                     ),
                     const SizedBox(height: 12),
                     const Text(
-                      'Discover our fine Barongs and find something special to add to your heritage collection.',
+                      'Discover handcrafted elegance for your heritage wardrobe.',
                       textAlign: TextAlign.center,
                       style: TextStyle(
+                        fontSize: 16,
                         color: AppTheme.textSecondary,
                         height: 1.5,
                       ),
                     ),
-                    const SizedBox(height: 40),
-                    ElevatedButton(
+                    const SizedBox(height: 48),
+                    OutlinedButton(
                       onPressed: () => context.go('/home'),
-                      style: ElevatedButton.styleFrom(
+                      style: OutlinedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 40,
-                          vertical: 16,
+                          horizontal: 48,
+                          vertical: 20,
+                        ),
+                        side: const BorderSide(
+                          color: AppTheme.primary,
+                          width: 1.5,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
                         ),
                       ),
-                      child: const Text('DISCOVER PIECES'),
+                      child: const Text(
+                        'BROWSE PIECES',
+                        style: TextStyle(
+                          color: AppTheme.primary,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 1.5,
+                        ),
+                      ),
                     ),
                   ],
                 ),
@@ -86,41 +107,40 @@ class CartScreen extends StatelessWidget {
               children: [
                 Expanded(
                   child: ListView.builder(
-                    padding: const EdgeInsets.all(20),
+                    padding: const EdgeInsets.fromLTRB(20, 20, 20, 40),
                     itemCount: cart.items.length,
                     itemBuilder: (context, index) {
                       final item = cart.items[index];
                       return Container(
-                        margin: const EdgeInsets.only(bottom: 16),
+                        margin: const EdgeInsets.only(bottom: 20),
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
                           color: Colors.white,
-                          borderRadius: BorderRadius.circular(24),
-                          border: Border.all(color: AppTheme.borderLight),
+                          borderRadius: BorderRadius.circular(28),
+                          border: Border.all(
+                            color: AppTheme.borderLight.withValues(alpha: 0.5),
+                          ),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.03),
-                              blurRadius: 10,
-                              offset: const Offset(0, 4),
+                              color: Colors.black.withValues(alpha: 0.02),
+                              blurRadius: 15,
+                              offset: const Offset(0, 8),
                             ),
                           ],
                         ),
                         child: Row(
                           children: [
                             ClipRRect(
-                              borderRadius: BorderRadius.circular(16),
+                              borderRadius: BorderRadius.circular(20),
                               child: Container(
-                                width: 90,
-                                height: 110,
+                                width: 100,
+                                height: 120,
                                 color: AppTheme.background,
                                 child: CachedNetworkImage(
                                   imageUrl: item.product.imageUrl,
                                   fit: BoxFit.cover,
-                                  errorWidget: (context, url, error) =>
-                                      const Icon(
-                                        Icons.broken_image_outlined,
-                                        color: AppTheme.textMuted,
-                                      ),
+                                  errorWidget: (_, _, _) =>
+                                      const Icon(Icons.broken_image_rounded),
                                 ),
                               ),
                             ),
@@ -130,85 +150,76 @@ class CartScreen extends StatelessWidget {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    item.product.category?.toUpperCase() ??
-                                        'PIECE',
+                                    (item.product.category ?? 'Piece')
+                                        .toUpperCase(),
                                     style: const TextStyle(
                                       fontSize: 9,
-                                      fontWeight: FontWeight.w800,
-                                      letterSpacing: 1,
+                                      fontWeight: FontWeight.w900,
+                                      letterSpacing: 1.5,
                                       color: AppTheme.primary,
                                     ),
                                   ),
                                   const SizedBox(height: 4),
                                   Text(
-                                    item.product.name,
+                                    item.product.name.toUpperCase(),
                                     style: const TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w800,
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w900,
                                       color: AppTheme.textPrimary,
+                                      letterSpacing: 0.5,
                                     ),
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                   ),
                                   const SizedBox(height: 4),
                                   Text(
-                                    fmt.format(
-                                      item.product.price * item.quantity,
-                                    ),
+                                    fmt.format(item.product.price),
                                     style: const TextStyle(
-                                      fontSize: 16,
+                                      fontSize: 15,
                                       fontWeight: FontWeight.w900,
                                       color: AppTheme.textPrimary,
+                                      fontStyle: FontStyle.italic,
                                     ),
                                   ),
-                                  const SizedBox(height: 12),
+                                  const SizedBox(height: 16),
                                   Row(
                                     children: [
-                                      _QtyBtn(
-                                        icon: Icons.remove,
+                                      _QtyActionBtn(
+                                        icon: Icons.remove_rounded,
                                         onTap: () => cart.updateQuantity(
                                           item.product.id,
                                           item.quantity - 1,
                                         ),
                                       ),
-                                      Padding(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 16,
-                                        ),
+                                      SizedBox(
+                                        width: 32,
                                         child: Text(
                                           '${item.quantity}',
+                                          textAlign: TextAlign.center,
                                           style: const TextStyle(
                                             fontWeight: FontWeight.w900,
-                                            fontSize: 14,
+                                            fontSize: 13,
                                           ),
                                         ),
                                       ),
-                                      _QtyBtn(
-                                        icon: Icons.add,
+                                      _QtyActionBtn(
+                                        icon: Icons.add_rounded,
                                         onTap: () => cart.updateQuantity(
                                           item.product.id,
                                           item.quantity + 1,
                                         ),
                                       ),
                                       const Spacer(),
-                                      GestureDetector(
-                                        onTap: () => cart.removeFromCart(
+                                      IconButton(
+                                        onPressed: () => cart.removeFromCart(
                                           item.product.id,
                                         ),
-                                        child: Container(
-                                          padding: const EdgeInsets.all(8),
-                                          decoration: BoxDecoration(
-                                            color: AppTheme.primary.withValues(
-                                              alpha: 0.1,
-                                            ),
-                                            shape: BoxShape.circle,
-                                          ),
-                                          child: const Icon(
-                                            Icons.delete_outline_rounded,
-                                            color: AppTheme.primary,
-                                            size: 18,
-                                          ),
+                                        icon: const Icon(
+                                          Icons.delete_outline_rounded,
+                                          size: 20,
                                         ),
+                                        color: AppTheme.textMuted,
+                                        visualDensity: VisualDensity.compact,
                                       ),
                                     ],
                                   ),
@@ -222,70 +233,71 @@ class CartScreen extends StatelessWidget {
                   ),
                 ),
                 Container(
-                  padding: const EdgeInsets.fromLTRB(24, 24, 24, 32),
+                  padding: const EdgeInsets.fromLTRB(32, 28, 32, 40),
                   decoration: BoxDecoration(
                     color: AppTheme.darkSection,
                     borderRadius: const BorderRadius.vertical(
-                      top: Radius.circular(32),
+                      top: Radius.circular(40),
                     ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppTheme.primary.withValues(alpha: 0.1),
+                        blurRadius: 30,
+                        offset: const Offset(0, -10),
+                      ),
+                    ],
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                  child: Row(
                     children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'TOTAL COLLECTION',
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w800,
-                                  letterSpacing: 1.5,
-                                  color: Colors.white.withValues(alpha: 0.5),
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                fmt.format(cart.cartTotal),
-                                style: const TextStyle(
-                                  fontSize: 24,
-                                  fontWeight: FontWeight.w900,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ],
-                          ),
-                          ElevatedButton(
-                            onPressed: () => context.push('/checkout'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: AppTheme.primary,
-                              foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 32,
-                                vertical: 16,
-                              ),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16),
+                      Expanded(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'COLLECTION TOTAL',
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: 2,
+                                color: Colors.white.withValues(alpha: 0.4),
                               ),
                             ),
-                            child: const Row(
-                              children: [
-                                Text(
-                                  'CHECKOUT',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.w900,
-                                    letterSpacing: 1,
-                                  ),
-                                ),
-                                SizedBox(width: 8),
-                                Icon(Icons.arrow_forward_ios_rounded, size: 14),
-                              ],
+                            const SizedBox(height: 4),
+                            Text(
+                              fmt.format(cart.cartTotal),
+                              style: const TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.w900,
+                                color: Colors.white,
+                              ),
                             ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 24),
+                      ElevatedButton(
+                        onPressed: () => context.push('/checkout'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.white,
+                          foregroundColor: AppTheme.darkSection,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 32,
+                            vertical: 18,
                           ),
-                        ],
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(18),
+                          ),
+                          elevation: 0,
+                        ),
+                        child: const Text(
+                          'CHECKOUT',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 1.5,
+                            fontSize: 12,
+                          ),
+                        ),
                       ),
                     ],
                   ),
@@ -296,10 +308,10 @@ class CartScreen extends StatelessWidget {
   }
 }
 
-class _QtyBtn extends StatelessWidget {
+class _QtyActionBtn extends StatelessWidget {
   final IconData icon;
   final VoidCallback onTap;
-  const _QtyBtn({required this.icon, required this.onTap});
+  const _QtyActionBtn({required this.icon, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -308,7 +320,9 @@ class _QtyBtn extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(4),
         decoration: BoxDecoration(
-          border: Border.all(color: AppTheme.borderLight),
+          border: Border.all(
+            color: AppTheme.borderLight.withValues(alpha: 0.5),
+          ),
           borderRadius: BorderRadius.circular(8),
         ),
         child: Icon(icon, size: 18, color: AppTheme.textPrimary),

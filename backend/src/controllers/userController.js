@@ -15,21 +15,22 @@ exports.getProfile = async (req, res) => {
 
 exports.updateProfile = async (req, res) => {
     try {
-        const { name, phone, address, shopName, shopDescription, gcashNumber, facebook, instagram, tiktok, twitter } = req.body;
+        const { name, phone, address, shopName, shopDescription, gcashNumber, facebook, instagram, tiktok, twitter, profileImage } = req.body;
         const user = await User.findByPk(req.user.id);
+        const updateData = {};
+        if (name) updateData.name = name;
+        if (phone) updateData.phone = phone;
+        if (address) updateData.address = address;
+        if (shopName) updateData.shopName = shopName;
+        if (shopDescription) updateData.shopDescription = shopDescription;
+        if (gcashNumber) updateData.gcashNumber = gcashNumber;
+        if (facebook) updateData.facebook = facebook;
+        if (instagram) updateData.instagram = instagram;
+        if (tiktok) updateData.tiktok = tiktok;
+        if (twitter) updateData.twitter = twitter;
+        if (profileImage !== undefined) updateData.profileImage = profileImage;
 
-        await user.update({
-            name: name || user.name,
-            phone: phone || user.phone,
-            address: address || user.address,
-            shopName: shopName || user.shopName,
-            shopDescription: shopDescription || user.shopDescription,
-            gcashNumber: gcashNumber || user.gcashNumber,
-            facebook: facebook || user.facebook,
-            instagram: instagram || user.instagram,
-            tiktok: tiktok || user.tiktok,
-            twitter: twitter || user.twitter
-        });
+        await user.update(updateData);
 
         res.json({ message: 'Profile updated successfully', user });
     } catch (err) {

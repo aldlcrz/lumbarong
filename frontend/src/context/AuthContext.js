@@ -57,6 +57,12 @@ export function AuthProvider({ children }) {
         }
     };
 
+    const updateUser = (updatedUser) => {
+        const newUser = { ...user, ...updatedUser };
+        sessionStorage.setItem('user', JSON.stringify(newUser));
+        setUser(newUser);
+    };
+
     const login = async (email, password) => {
         try {
             const res = await api.post('/auth/login', { email, password });
@@ -94,7 +100,7 @@ export function AuthProvider({ children }) {
     };
 
     return (
-        <AuthContext.Provider value={{ user, login, register, logout, loading }}>
+        <AuthContext.Provider value={{ user, login, register, logout, updateUser, loading }}>
             {children}
         </AuthContext.Provider>
     );

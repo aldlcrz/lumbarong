@@ -10,7 +10,7 @@ export default function HeritageGuide() {
         <div className="min-h-screen bg-[#fdfbf7]">
             <Navbar />
 
-            <main className="pb-32">
+            <main className="pb-16">
                 {/* Back Button */}
                 <div className="container mx-auto px-6 pt-8">
                     <button
@@ -51,8 +51,8 @@ export default function HeritageGuide() {
                 </section>
 
                 {/* Steps Section */}
-                <section className="container mx-auto px-6 max-w-6xl mt-32">
-                    <div className="grid grid-cols-1 gap-40">
+                <section className="container mx-auto px-6 max-w-6xl mt-16">
+                    <div className="grid grid-cols-1 gap-24">
 
                         <StepSection
                             number="01"
@@ -86,8 +86,8 @@ export default function HeritageGuide() {
                 </section>
 
                 {/* Care HUD */}
-                <section className="mt-40 bg-white border-y border-gray-100 py-32">
-                    <div className="container mx-auto px-6 text-center mb-20">
+                <section className="mt-20 bg-white border-y border-gray-100 py-16">
+                    <div className="container mx-auto px-6 text-center mb-16">
                         <h2 className="text-4xl font-black text-gray-900 italic uppercase tracking-tighter mb-4">Preserving the Legacy</h2>
                         <p className="text-gray-400 font-medium italic">How to care for your commissioned masterpiece.</p>
                     </div>

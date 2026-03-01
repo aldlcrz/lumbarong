@@ -50,7 +50,9 @@ class _OrdersScreenState extends State<OrdersScreen> {
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();
     if (!auth.isLoggedIn) {
-      context.go('/');
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) context.go('/');
+      });
       return const SizedBox.shrink();
     }
     final fmt = NumberFormat.currency(
@@ -149,27 +151,43 @@ class _OrdersScreenState extends State<OrdersScreen> {
                                 ),
                               ),
                               const SizedBox(height: 2),
-                              Row(
-                                children: [
-                                  Container(
-                                    width: 8,
-                                    height: 8,
-                                    decoration: const BoxDecoration(
-                                      color: Color(0xFF10B981),
-                                      shape: BoxShape.circle,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 6),
-                                  Text(
-                                    o.status.toUpperCase(),
-                                    style: const TextStyle(
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.w800,
-                                      color: Color(0xFF059669),
-                                      letterSpacing: 0.5,
-                                    ),
-                                  ),
-                                ],
+                              Builder(
+                                builder: (_) {
+                                  final status = o.status.toLowerCase();
+                                  final color = status == 'pending'
+                                      ? Colors.orange
+                                      : status == 'cancelled'
+                                      ? Colors.red
+                                      : status == 'delivered'
+                                      ? const Color(0xFF10B981)
+                                      : status == 'processing'
+                                      ? const Color(0xFF6366F1)
+                                      : status == 'shipped'
+                                      ? const Color(0xFF0EA5E9)
+                                      : const Color(0xFF10B981);
+                                  return Row(
+                                    children: [
+                                      Container(
+                                        width: 8,
+                                        height: 8,
+                                        decoration: BoxDecoration(
+                                          color: color,
+                                          shape: BoxShape.circle,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 6),
+                                      Text(
+                                        o.status.toUpperCase(),
+                                        style: TextStyle(
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.w800,
+                                          color: color,
+                                          letterSpacing: 0.5,
+                                        ),
+                                      ),
+                                    ],
+                                  );
+                                },
                               ),
                             ],
                           ),

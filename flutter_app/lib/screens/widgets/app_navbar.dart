@@ -222,6 +222,7 @@ class LumBarongAppBar extends StatelessWidget implements PreferredSizeWidget {
                   fontWeight: FontWeight.w900,
                   fontStyle: FontStyle.italic,
                   color: AppTheme.primary,
+                  letterSpacing: -1.0,
                 ),
               ),
             ),

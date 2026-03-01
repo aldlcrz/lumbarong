@@ -77,7 +77,8 @@ export default function ProductDetails() {
             });
 
             // Fetch related products from same category
-            const relatedRes = await api.get(`/products?category=${res.data.category}`);
+            const categoryId = res.data.CategoryId || res.data.category?.id || res.data.category;
+            const relatedRes = await api.get(`/products?categoryId=${categoryId}`);
             setRelatedProducts(relatedRes.data.filter(p => p.id !== id).slice(0, 4));
 
             setLoading(false);
@@ -141,21 +142,21 @@ export default function ProductDetails() {
         <div className="min-h-screen bg-[#f5f5f5]">
             <Navbar minimal={isAdmin} />
 
-            <main className="container mx-auto px-4 pt-24 pb-12 max-w-7xl">
+            <main className="container mx-auto px-4 pt-20 pb-8 max-w-7xl">
                 {/* Breadcrumbs - Only for Buyers */}
                 {isBuyer && (
                     <div className="flex items-center gap-2 text-xs text-gray-500 mb-4 px-2">
                         <Link href="/"><span className="hover:text-red-500 cursor-pointer">LumBarong</span></Link>
                         <ChevronRight size={10} />
-                        <span className="hover:text-red-500 cursor-pointer">{product.category}</span>
+                        <span className="hover:text-red-500 cursor-pointer">{product.category?.name || (typeof product.category === 'string' ? product.category : 'Barong')}</span>
                         <ChevronRight size={10} />
                         <span className="text-gray-900 truncate max-w-[200px]">{product.name}</span>
                     </div>
                 )}
 
-                <div className="bg-white rounded-sm shadow-sm flex flex-col lg:flex-row p-4 min-h-[600px] gap-8">
+                <div className="bg-white rounded-sm shadow-sm flex flex-col lg:flex-row p-4 min-h-[500px] gap-6">
                     {/* Left: Image Section */}
-                    <div className="lg:w-[450px] shrink-0">
+                    <div className="lg:w-[400px] shrink-0">
                         <div
                             onClick={() => setIsZoomed(true)}
                             className="aspect-square overflow-hidden bg-gray-50 relative group cursor-zoom-in border border-gray-100"
@@ -206,9 +207,9 @@ export default function ProductDetails() {
                     </div>
 
                     {/* Right: Details Section */}
-                    <div className="flex-1 space-y-6">
+                    <div className="flex-1 space-y-4">
                         <div>
-                            <h1 className="text-2xl font-medium text-gray-900 leading-tight mb-2">
+                            <h1 className="text-xl font-bold text-gray-900 leading-tight mb-2">
                                 {product.name}
                             </h1>
 
@@ -233,11 +234,11 @@ export default function ProductDetails() {
                         </div>
 
                         {/* Shopee Price Block */}
-                        <div className="bg-[#fafafa] p-6 rounded-sm flex items-center gap-4">
+                        <div className="bg-[#fafafa] p-4 rounded-sm flex items-center gap-4">
                             {isBuyer ? (
                                 <>
                                     <span className="text-sm text-gray-400 line-through">₱{(product.price * 1.5).toLocaleString()}</span>
-                                    <span className="text-3xl font-medium text-red-500">
+                                    <span className="text-2xl font-black text-red-500">
                                         ₱{product.price.toLocaleString()}
                                     </span>
                                     <span className="bg-red-500 text-white text-[10px] px-1 rounded-sm font-bold uppercase">50% OFF</span>
@@ -361,7 +362,7 @@ export default function ProductDetails() {
                             </div>
                         ) : (
                             <>
-                                <div className="flex items-center gap-4 pt-8">
+                                <div className="flex items-center gap-4 pt-4">
                                     <button
                                         onClick={async () => {
                                             setIsAdding(true);
@@ -369,7 +370,7 @@ export default function ProductDetails() {
                                             setIsAdding(false);
                                         }}
                                         disabled={isAdding}
-                                        className="flex-1 lg:flex-none lg:w-[220px] h-14 bg-red-50 border-2 border-red-500 text-red-500 rounded-sm font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-red-100 transition-all active:scale-[0.98] disabled:opacity-50"
+                                        className="flex-1 lg:flex-none lg:w-[180px] h-12 bg-red-50 border-2 border-red-500 text-red-500 rounded-sm font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-red-100 transition-all active:scale-[0.98] disabled:opacity-50"
                                     >
                                         {isAdding ? (
                                             <div className="w-5 h-5 border-2 border-red-500/20 border-t-red-500 rounded-full animate-spin"></div>
@@ -387,7 +388,7 @@ export default function ProductDetails() {
                                             router.push('/checkout');
                                         }}
                                         disabled={isAdding}
-                                        className="flex-1 lg:flex-none lg:w-[150px] h-14 bg-red-500 text-white rounded-sm font-black text-xs uppercase tracking-widest hover:bg-red-600 transition-all active:scale-[0.98] shadow-xl shadow-red-100 disabled:opacity-50"
+                                        className="flex-1 lg:flex-none lg:w-[140px] h-12 bg-red-500 text-white rounded-sm font-black text-xs uppercase tracking-widest hover:bg-red-600 transition-all active:scale-[0.98] shadow-xl shadow-red-100 disabled:opacity-50"
                                     >
                                         {isAdding ? 'Processing...' : 'Buy Now'}
                                     </button>
@@ -410,73 +411,75 @@ export default function ProductDetails() {
                 </div>
 
                 {/* Seller Detail & Story Section - Only for Buyers */}
-                {isBuyer && (
-                    <div className="mt-6 bg-white rounded-sm shadow-sm p-8 flex flex-col md:flex-row gap-12 border-t border-gray-50">
-                        <div className="md:w-1/3 flex items-center gap-6 border-r border-gray-100">
-                            <div className="w-20 h-20 rounded-full bg-red-50 border border-red-100 flex items-center justify-center text-red-600 text-2xl font-bold italic overflow-hidden">
-                                {product.seller?.profileImage ? (
-                                    <img src={product.seller.profileImage} className="w-full h-full object-cover" />
-                                ) : (
-                                    <span>{product.seller?.shopName?.charAt(0) || product.seller?.name?.charAt(0) || 'L'}</span>
-                                )}
+                {
+                    isBuyer && (
+                        <div className="mt-4 bg-white rounded-sm shadow-sm p-6 flex flex-col md:flex-row gap-8 border-t border-gray-50">
+                            <div className="md:w-1/3 flex items-center gap-6 border-r border-gray-100">
+                                <div className="w-20 h-20 rounded-full bg-red-50 border border-red-100 flex items-center justify-center text-red-600 text-2xl font-bold italic overflow-hidden">
+                                    {product.seller?.profileImage ? (
+                                        <img src={product.seller.profileImage} className="w-full h-full object-cover" />
+                                    ) : (
+                                        <span>{product.seller?.shopName?.charAt(0) || product.seller?.name?.charAt(0) || 'L'}</span>
+                                    )}
+                                </div>
+                                <div>
+                                    <p className="font-bold text-lg text-gray-900 mb-2">{product.seller?.shopName || 'Lumban Master Tailors'}</p>
+                                    <div className="flex gap-2">
+                                        <button
+                                            onClick={() => {
+                                                if (!user) {
+                                                    router.push('/login?redirect=' + router.asPath);
+                                                    return;
+                                                }
+                                                setShowChat(true);
+                                            }}
+                                            className="px-4 py-1.5 border border-red-500 text-red-500 text-xs rounded-sm hover:bg-red-50 transition-colors"
+                                        >
+                                            Chat Now
+                                        </button>
+                                        <button
+                                            onClick={() => router.push(`/shop/${product.sellerId}`)}
+                                            className="px-4 py-1.5 border border-gray-200 text-gray-600 text-xs rounded-sm hover:bg-gray-50 transition-colors"
+                                        >
+                                            View Shop
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
-                            <div>
-                                <p className="font-bold text-lg text-gray-900 mb-2">{product.seller?.shopName || 'Lumban Master Tailors'}</p>
-                                <div className="flex gap-2">
-                                    <button
-                                        onClick={() => {
-                                            if (!user) {
-                                                router.push('/login?redirect=' + router.asPath);
-                                                return;
-                                            }
-                                            setShowChat(true);
-                                        }}
-                                        className="px-4 py-1.5 border border-red-500 text-red-500 text-xs rounded-sm hover:bg-red-50 transition-colors"
-                                    >
-                                        Chat Now
-                                    </button>
-                                    <button
-                                        onClick={() => router.push(`/shop/${product.sellerId}`)}
-                                        className="px-4 py-1.5 border border-gray-200 text-gray-600 text-xs rounded-sm hover:bg-gray-50 transition-colors"
-                                    >
-                                        View Shop
-                                    </button>
+                            <div className="flex-1 flex items-center justify-around text-center px-4">
+                                <div className="space-y-1">
+                                    <p className="text-xs text-gray-400">Ratings</p>
+                                    <p className="text-red-500 font-medium">4.9 / 5.0</p>
+                                </div>
+                                <div className="space-y-1">
+                                    <p className="text-xs text-gray-400">Response Rate</p>
+                                    <p className="text-red-500 font-medium">99%</p>
+                                </div>
+                                <div className="space-y-1">
+                                    <p className="text-xs text-gray-400">Joined</p>
+                                    <p className="text-red-500 font-medium whitespace-nowrap">
+                                        {product.seller?.createdAt ? (
+                                            (() => {
+                                                const diff = Date.now() - new Date(product.seller.createdAt).getTime();
+                                                const months = Math.floor(diff / (1000 * 60 * 60 * 24 * 30.44));
+                                                if (months < 1) return 'Just Joined';
+                                                if (months < 12) return `${months} Months Ago`;
+                                                return `${Math.floor(months / 12)} Years Ago`;
+                                            })()
+                                        ) : '24 Months Ago'}
+                                    </p>
+                                </div>
+                                <div className="space-y-1">
+                                    <p className="text-xs text-gray-400">Verified</p>
+                                    <p className="text-red-500 font-medium">{product.seller?.isVerified ? 'Yes' : 'Pending'}</p>
                                 </div>
                             </div>
                         </div>
-                        <div className="flex-1 flex items-center justify-around text-center px-4">
-                            <div className="space-y-1">
-                                <p className="text-xs text-gray-400">Ratings</p>
-                                <p className="text-red-500 font-medium">4.9 / 5.0</p>
-                            </div>
-                            <div className="space-y-1">
-                                <p className="text-xs text-gray-400">Response Rate</p>
-                                <p className="text-red-500 font-medium">99%</p>
-                            </div>
-                            <div className="space-y-1">
-                                <p className="text-xs text-gray-400">Joined</p>
-                                <p className="text-red-500 font-medium whitespace-nowrap">
-                                    {product.seller?.createdAt ? (
-                                        (() => {
-                                            const diff = Date.now() - new Date(product.seller.createdAt).getTime();
-                                            const months = Math.floor(diff / (1000 * 60 * 60 * 24 * 30.44));
-                                            if (months < 1) return 'Just Joined';
-                                            if (months < 12) return `${months} Months Ago`;
-                                            return `${Math.floor(months / 12)} Years Ago`;
-                                        })()
-                                    ) : '24 Months Ago'}
-                                </p>
-                            </div>
-                            <div className="space-y-1">
-                                <p className="text-xs text-gray-400">Verified</p>
-                                <p className="text-red-500 font-medium">{product.seller?.isVerified ? 'Yes' : 'Pending'}</p>
-                            </div>
-                        </div>
-                    </div>
-                )}
+                    )
+                }
 
                 {/* Product Description */}
-                <div className="mt-6 bg-white rounded-sm shadow-sm p-8">
+                <div className="mt-4 bg-white rounded-sm shadow-sm p-6">
                     <div className="flex items-center justify-between bg-[#fafafa] p-4 mb-6">
                         <h2 className="text-lg font-medium text-gray-900 uppercase tracking-wider">Product Specifications</h2>
                         {isSellerOwner && (
@@ -523,7 +526,7 @@ export default function ProductDetails() {
                                     <option>Others</option>
                                 </select>
                             ) : (
-                                <span className="text-gray-900">{product.category}</span>
+                                <span className="text-gray-900">{product.category?.name || (typeof product.category === 'string' ? product.category : 'Barong')}</span>
                             )}
                         </div>
                         <div className="flex border-b border-gray-50 pb-2 items-center">
@@ -690,33 +693,35 @@ export default function ProductDetails() {
                 </div>
 
                 {/* Related Products Section */}
-                {relatedProducts.length > 0 && (
-                    <div className="mt-12">
-                        <div className="flex items-center justify-between mb-8">
-                            <div>
-                                <h2 className="text-2xl font-black text-gray-900 tracking-tight italic uppercase">Recommended Pieces</h2>
-                                <p className="text-sm text-gray-400 font-medium mt-1">Discover more heritage designs from this collection.</p>
+                {
+                    relatedProducts.length > 0 && (
+                        <div className="mt-8">
+                            <div className="flex items-center justify-between mb-6">
+                                <div>
+                                    <h2 className="text-xl font-black text-gray-900 tracking-tight italic uppercase">Recommended Pieces</h2>
+                                    <p className="text-sm text-gray-400 font-medium mt-1">Discover more heritage designs from this collection.</p>
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                                {relatedProducts.map(p => (
+                                    <Link key={p.id} href={`/products/${p.id}`}>
+                                        <div className="bg-white rounded-2xl p-4 border border-gray-100 hover:border-red-600 transition-all group cursor-pointer shadow-sm">
+                                            <div className="aspect-[3/4] rounded-xl overflow-hidden mb-4 bg-gray-50">
+                                                <img src={p.images?.[0]?.url || p.images?.[0]} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                                            </div>
+                                            <h3 className="font-bold text-gray-900 truncate uppercase tracking-tight text-sm mb-1">{p.name}</h3>
+                                            <p className="text-red-600 font-black text-xs italic">₱{p.price.toLocaleString()}</p>
+                                        </div>
+                                    </Link>
+                                ))}
                             </div>
                         </div>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                            {relatedProducts.map(p => (
-                                <Link key={p.id} href={`/products/${p.id}`}>
-                                    <div className="bg-white rounded-2xl p-4 border border-gray-100 hover:border-red-600 transition-all group cursor-pointer shadow-sm">
-                                        <div className="aspect-[3/4] rounded-xl overflow-hidden mb-4 bg-gray-50">
-                                            <img src={p.images?.[0]?.url || p.images?.[0]} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
-                                        </div>
-                                        <h3 className="font-bold text-gray-900 truncate uppercase tracking-tight text-sm mb-1">{p.name}</h3>
-                                        <p className="text-red-600 font-black text-xs italic">₱{p.price.toLocaleString()}</p>
-                                    </div>
-                                </Link>
-                            ))}
-                        </div>
-                    </div>
-                )}
-            </main>
+                    )
+                }
+            </main >
 
             {/* Premium Zoom Overlay */}
-            <AnimatePresence>
+            < AnimatePresence >
                 {isZoomed && (
                     <motion.div
                         initial={{ opacity: 0 }}
@@ -764,17 +769,18 @@ export default function ProductDetails() {
                             />
                         </div>
                     </motion.div>
-                )}
-            </AnimatePresence>
+                )
+                }
+            </AnimatePresence >
             {/* Artisan ChatBox */}
-            <AnimatePresence>
+            < AnimatePresence >
                 {showChat && (
                     <ChatBox
                         receiver={product.seller}
                         onClose={() => setShowChat(false)}
                     />
                 )}
-            </AnimatePresence>
-        </div>
+            </AnimatePresence >
+        </div >
     );
 }

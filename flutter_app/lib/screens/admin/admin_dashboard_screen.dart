@@ -102,7 +102,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     }
     return Scaffold(
       backgroundColor: AppTheme.background,
-      appBar: const LumBarongAppBar(title: 'Admin Command', showBack: true),
+      appBar: const LumBarongAppBar(title: 'Admin Command'),
       bottomNavigationBar: const AppBottomNav(currentIndex: 0),
       body: Stack(
         children: [
@@ -191,10 +191,6 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                           onAction: _updateProductStatus,
                         ),
                       ),
-                    const SizedBox(height: 40),
-                    const _SectionLabel(text: 'SYSTEM CONTROLS'),
-                    const SizedBox(height: 16),
-                    _QuickActionsGrid(),
                   ],
                   const SizedBox(height: 40),
                 ],
@@ -575,104 +571,6 @@ class _StatCard extends StatelessWidget {
             ],
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _QuickActionsGrid extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    final actions = [
-      _QuickAction(
-        icon: Icons.people_outline,
-        label: 'Sellers',
-        route: '/admin/sellers',
-        color: const Color(0xFF6366F1),
-      ),
-      _QuickAction(
-        icon: Icons.inventory_2_outlined,
-        label: 'Products',
-        route: '/admin/products',
-        color: const Color(0xFF10B981),
-      ),
-      _QuickAction(
-        icon: Icons.settings_outlined,
-        label: 'Settings',
-        route: '/admin/settings',
-        color: AppTheme.primary,
-      ),
-    ];
-    return GridView.count(
-      crossAxisCount: 2,
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      mainAxisSpacing: 16,
-      crossAxisSpacing: 16,
-      childAspectRatio: 1.4,
-      children: actions.map((a) => _ActionCard(action: a)).toList(),
-    );
-  }
-}
-
-class _QuickAction {
-  final IconData icon;
-  final String label;
-  final String route;
-  final Color color;
-  const _QuickAction({
-    required this.icon,
-    required this.label,
-    required this.route,
-    required this.color,
-  });
-}
-
-class _ActionCard extends StatelessWidget {
-  final _QuickAction action;
-  const _ActionCard({required this.action});
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () => context.push(action.route),
-      child: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: AppTheme.borderLight),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.04),
-              blurRadius: 12,
-              offset: const Offset(0, 6),
-            ),
-          ],
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: action.color.withValues(alpha: 0.1),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(action.icon, color: action.color, size: 24),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              action.label,
-              style: const TextStyle(
-                fontWeight: FontWeight.w800,
-                color: AppTheme.textPrimary,
-                fontSize: 12,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
       ),
     );
   }

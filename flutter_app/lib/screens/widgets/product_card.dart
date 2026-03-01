@@ -19,27 +19,27 @@ class ProductCardWidget extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: AppTheme.borderLight),
+          borderRadius: BorderRadius.circular(28),
+          border: Border.all(
+            color: AppTheme.borderLight.withValues(alpha: 0.6),
+          ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.04),
-              blurRadius: 12,
-              offset: const Offset(0, 4),
+              color: Colors.black.withValues(alpha: 0.03),
+              blurRadius: 15,
+              offset: const Offset(0, 8),
             ),
           ],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Image section
-            ClipRRect(
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(24),
-                topRight: Radius.circular(24),
-              ),
-              child: AspectRatio(
-                aspectRatio: 1.1,
+            // Image section with premium treatment
+            Expanded(
+              child: ClipRRect(
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(28),
+                ),
                 child: Stack(
                   children: [
                     CachedNetworkImage(
@@ -47,72 +47,54 @@ class ProductCardWidget extends StatelessWidget {
                       fit: BoxFit.cover,
                       width: double.infinity,
                       height: double.infinity,
-                      placeholder: (context, url) => const ColoredBox(
-                        color: Color(0xFFF3F4F6),
-                        child: Center(
+                      placeholder: (context, url) => Container(
+                        color: AppTheme.background,
+                        child: const Center(
                           child: CircularProgressIndicator(
                             color: AppTheme.primary,
                             strokeWidth: 2,
                           ),
                         ),
                       ),
-                      errorWidget: (context, url, _) => const ColoredBox(
-                        color: Color(0xFFF3F4F6),
-                        child: Center(
+                      errorWidget: (context, url, _) => Container(
+                        color: AppTheme.background,
+                        child: const Center(
                           child: Icon(
-                            Icons.image_not_supported_outlined,
-                            color: AppTheme.textMuted,
+                            Icons.broken_image_outlined,
+                            color: AppTheme.borderLight,
                             size: 32,
                           ),
                         ),
                       ),
                     ),
-                    // Stock badge
-                    if (product.stock < 5)
-                      Positioned(
-                        top: 8,
-                        left: 8,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: AppTheme.primary,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: const Text(
-                            'LOW STOCK',
-                            style: TextStyle(
-                              fontSize: 8,
-                              fontWeight: FontWeight.w800,
-                              color: Colors.white,
-                              letterSpacing: 0.5,
-                            ),
-                          ),
-                        ),
-                      ),
-                    // Category badge
+                    // Elegant Category Badge
                     if (product.category != null &&
                         product.category!.isNotEmpty)
                       Positioned(
-                        top: 8,
-                        right: 8,
+                        top: 12,
+                        right: 12,
                         child: Container(
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 4,
+                            horizontal: 10,
+                            vertical: 5,
                           ),
                           decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.9),
-                            borderRadius: BorderRadius.circular(8),
+                            color: Colors.white.withValues(alpha: 0.95),
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.05),
+                                blurRadius: 4,
+                              ),
+                            ],
                           ),
                           child: Text(
-                            product.category!.split(' ').first,
+                            product.category!.toUpperCase(),
                             style: const TextStyle(
                               fontSize: 8,
-                              fontWeight: FontWeight.w800,
-                              color: AppTheme.textPrimary,
+                              fontWeight: FontWeight.w900,
+                              color: AppTheme.primary,
+                              letterSpacing: 0.5,
                             ),
                           ),
                         ),
@@ -121,39 +103,25 @@ class ProductCardWidget extends StatelessWidget {
                 ),
               ),
             ),
-            // Details
+            // Details section refined
             Padding(
-              padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
+              padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    product.name,
+                    product.name.toUpperCase(),
                     style: const TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w800,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w900,
                       color: AppTheme.textPrimary,
+                      letterSpacing: 0.5,
                       height: 1.2,
                     ),
-                    maxLines: 2,
+                    maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  if (product.description != null &&
-                      product.description!.isNotEmpty)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 4),
-                      child: Text(
-                        product.description!,
-                        style: const TextStyle(
-                          fontSize: 11,
-                          color: AppTheme.textMuted,
-                          height: 1.3,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 12),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -161,36 +129,48 @@ class ProductCardWidget extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const Text(
-                            'PRICE',
+                            'INVESTMENT',
                             style: TextStyle(
-                              fontSize: 8,
-                              fontWeight: FontWeight.w800,
+                              fontSize: 7,
+                              fontWeight: FontWeight.w900,
                               color: AppTheme.textMuted,
-                              letterSpacing: 1,
+                              letterSpacing: 1.5,
                             ),
                           ),
+                          const SizedBox(height: 2),
                           Text(
                             '₱${product.price.toStringAsFixed(0)}',
                             style: const TextStyle(
-                              fontSize: 17,
+                              fontSize: 18,
                               fontWeight: FontWeight.w900,
                               color: AppTheme.primary,
+                              fontStyle: FontStyle.italic,
+                              height: 1.0,
                             ),
                           ),
                         ],
                       ),
                       GestureDetector(
-                        onTap: () => cart.addToCart(product),
+                        onTap: () {
+                          cart.addToCart(product);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Added to Collection'),
+                              behavior: SnackBarBehavior.floating,
+                              duration: Duration(seconds: 1),
+                            ),
+                          );
+                        },
                         child: Container(
-                          padding: const EdgeInsets.all(8),
+                          padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            color: AppTheme.darkSection,
-                            borderRadius: BorderRadius.circular(12),
+                            color: AppTheme.textPrimary,
+                            borderRadius: BorderRadius.circular(16),
                           ),
                           child: const Icon(
-                            Icons.shopping_cart_outlined,
+                            Icons.add_shopping_cart_rounded,
                             color: Colors.white,
-                            size: 18,
+                            size: 16,
                           ),
                         ),
                       ),

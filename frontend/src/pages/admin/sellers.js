@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import Navbar from '@/components/Navbar';
+import AdminLayout from '@/components/AdminLayout';
 import api from '@/utils/api';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -175,13 +175,16 @@ export default function ManageSellers() {
     useEffect(() => {
         if (user && user.role === 'admin') {
             fetchSellers();
+            if (router.query.search) {
+                setSearchTerm(router.query.search);
+            }
         }
-    }, [user]);
+    }, [user, router.query.search]);
 
     const fetchSellers = async () => {
         try {
             setLoading(true);
-            const res = await api.get('/auth/sellers'); // I'll assume this endpoint returns all sellers
+            const res = await api.get('/auth/sellers');
             setSellers(res.data);
         } catch (err) {
             console.error(err);
@@ -217,15 +220,7 @@ export default function ManageSellers() {
     });
 
     return (
-        <div className="min-h-screen bg-[#fdfbf7]">
-            <Navbar />
-            <div className="container mx-auto px-4 md:px-8 pt-4">
-                <Link href="/admin/dashboard" className="inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-white border border-gray-100 hover:bg-red-50 hover:border-red-100 text-gray-600 hover:text-red-600 font-bold text-sm transition-all">
-                    <ArrowLeft size={18} />
-                    Back to Dashboard
-                </Link>
-            </div>
-
+        <AdminLayout>
             <AnimatePresence>
                 {showCreateModal && (
                     <CreateSellerModal
@@ -235,30 +230,27 @@ export default function ManageSellers() {
                 )}
             </AnimatePresence>
 
-            <main className="container mx-auto px-4 md:px-8 py-12">
-
-
-                <header className="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-8">
+            <div className="flex flex-col gap-10">
+                <header className="flex flex-col xl:flex-row xl:items-end justify-between gap-8">
                     <div>
-                        <p className="text-red-600 font-black text-[10px] uppercase tracking-[0.4em] mb-3">Artisan Governance</p>
-                        <h1 className="text-5xl font-black text-gray-900 tracking-tighter italic uppercase">Seller Directory</h1>
-                        <p className="text-gray-500 mt-2 font-medium italic">Overseeing the master artisans of the LumBarong platform.</p>
+                        <h1 className="text-3xl font-black text-gray-900 tracking-tighter uppercase">Seller Directory</h1>
+                        <p className="text-sm text-gray-400 font-bold">Overseeing the master artisans of the LumBarong platform.</p>
                     </div>
 
                     <div className="flex flex-col sm:flex-row gap-4 items-center">
-                        <div className="relative">
+                        <div className="relative w-full sm:w-80">
                             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                             <input
                                 type="text"
                                 placeholder="Search by name or shop..."
-                                className="pl-12 pr-6 py-4 rounded-2xl bg-white border border-gray-100 shadow-sm outline-none focus:border-red-600 transition-all font-bold text-sm min-w-[300px]"
+                                className="w-full pl-12 pr-6 py-3.5 rounded-2xl bg-white border border-gray-100 shadow-sm outline-none focus:border-red-600 transition-all font-bold text-xs"
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                             />
                         </div>
                         <button
                             onClick={() => setShowCreateModal(true)}
-                            className="flex items-center gap-2 px-8 py-4 bg-black text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-red-600 transition-all shadow-xl shadow-gray-200"
+                            className="w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-4 bg-gray-900 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-red-600 transition-all shadow-xl shadow-gray-200"
                         >
                             <Plus size={16} />
                             Initiate Artisan
@@ -371,7 +363,7 @@ export default function ManageSellers() {
                         )}
                     </div>
                 )}
-            </main>
-        </div>
+            </div>
+        </AdminLayout>
     );
 }

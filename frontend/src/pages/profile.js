@@ -124,11 +124,11 @@ export default function Profile() {
         <div className="bg-[#fdfbf7] min-h-screen font-['Inter']">
             <Navbar />
 
-            <main className="max-w-7xl mx-auto px-6 py-12 lg:py-20">
+            <main className="max-w-7xl mx-auto px-6 py-10 lg:py-16">
                 <div className="flex flex-col lg:flex-row gap-12">
                     {/* Sidebar */}
                     <aside className="lg:w-1/4 space-y-6">
-                        <div className="bg-white rounded-[2.5rem] p-8 border border-gray-100 shadow-sm border-b-4 border-b-red-600/10">
+                        <div className="bg-white rounded-[2.5rem] p-6 border border-gray-100 shadow-sm border-b-4 border-b-red-600/10">
                             <div className="flex items-center gap-4 mb-8">
                                 <div className="w-16 h-16 rounded-2xl bg-gray-900 flex items-center justify-center text-white text-2xl font-black italic italic uppercase italic">
                                     {user?.name?.charAt(0) || 'U'}
@@ -171,10 +171,10 @@ export default function Profile() {
                                     initial={{ opacity: 0, y: 10 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     exit={{ opacity: 0, y: -10 }}
-                                    className="bg-white rounded-[3rem] p-10 lg:p-16 border border-gray-100 shadow-sm"
+                                    className="bg-white rounded-[3rem] p-8 lg:p-12 border border-gray-100 shadow-sm"
                                 >
-                                    <div className="mb-12">
-                                        <h1 className="text-4xl font-black text-gray-900 tracking-tighter italic uppercase underline decoration-red-600/20 underline-offset-8">Account Settings</h1>
+                                    <div className="mb-8">
+                                        <h1 className="text-2xl font-black text-gray-900 tracking-tighter italic uppercase underline decoration-red-600/20 underline-offset-8">Account Settings</h1>
                                         <p className="mt-4 text-gray-500 font-medium italic">Manage your personal information and contact details.</p>
                                     </div>
 
@@ -188,7 +188,7 @@ export default function Profile() {
                                                     type="text"
                                                     value={profileData.name}
                                                     onChange={(e) => setProfileData({ ...profileData, name: e.target.value })}
-                                                    className="w-full bg-gray-50 border-none rounded-2xl px-6 py-4 font-bold text-gray-900 focus:ring-2 focus:ring-red-600/20 transition-all"
+                                                    className="w-full bg-gray-50 border-none rounded-2xl px-6 py-3 font-bold text-gray-900 focus:ring-2 focus:ring-red-600/20 transition-all"
                                                     placeholder="Enter your full name"
                                                 />
                                             </div>
@@ -211,7 +211,7 @@ export default function Profile() {
                                                     type="text"
                                                     value={profileData.phone}
                                                     onChange={(e) => setProfileData({ ...profileData, phone: e.target.value })}
-                                                    className="w-full bg-gray-50 border-none rounded-2xl px-6 py-4 font-bold text-gray-900 focus:ring-2 focus:ring-red-600/20 transition-all"
+                                                    className="w-full bg-gray-50 border-none rounded-2xl px-6 py-3 font-bold text-gray-900 focus:ring-2 focus:ring-red-600/20 transition-all"
                                                     placeholder="+63 9XX XXX XXXX"
                                                 />
                                             </div>
@@ -232,11 +232,11 @@ export default function Profile() {
                                     initial={{ opacity: 0, y: 10 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     exit={{ opacity: 0, y: -10 }}
-                                    className="bg-white rounded-[3rem] p-10 lg:p-16 border border-gray-100 shadow-sm"
+                                    className="bg-white rounded-[3rem] p-8 lg:p-12 border border-gray-100 shadow-sm"
                                 >
-                                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-12">
+                                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8">
                                         <div>
-                                            <h1 className="text-4xl font-black text-gray-900 tracking-tighter italic uppercase underline decoration-red-600/20 underline-offset-8">Address Book</h1>
+                                            <h1 className="text-2xl font-black text-gray-900 tracking-tighter italic uppercase underline decoration-red-600/20 underline-offset-8">Address Book</h1>
                                             <p className="mt-4 text-gray-500 font-medium italic">Manage your delivery locations for faster checkout.</p>
                                         </div>
                                         <button
@@ -256,7 +256,7 @@ export default function Profile() {
 
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                         {addresses.map(addr => (
-                                            <div key={addr.id} className={`group relative p-8 rounded-[2.5rem] border transition-all ${addr.isDefault ? 'border-red-100 bg-red-50/20 shadow-lg' : 'border-gray-100 hover:border-gray-200'}`}>
+                                            <div key={addr.id} className={`group relative p-6 rounded-[2.5rem] border transition-all ${addr.isDefault ? 'border-red-100 bg-red-50/20 shadow-lg' : 'border-gray-100 hover:border-gray-200'}`}>
                                                 <div className="flex justify-between items-start mb-6">
                                                     <div className="flex items-center gap-3">
                                                         <div className={`p-2 rounded-xl ${addr.isDefault ? 'bg-red-600 text-white' : 'bg-gray-50 text-gray-400'}`}>

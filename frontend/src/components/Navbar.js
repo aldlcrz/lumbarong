@@ -97,10 +97,10 @@ export default function Navbar({ minimal = false }) {
 
     return (
         <header className="bg-white/80 backdrop-blur-md border-b border-gray-100 sticky top-0 z-[100]">
-            <div className="container mx-auto px-4 md:px-8 h-20 flex justify-between items-center">
+            <div className="container mx-auto px-4 md:px-8 h-16 flex justify-between items-center">
                 <Link href="/">
                     <div className="flex items-center gap-2 cursor-pointer group">
-                        <span className="text-2xl md:text-3xl font-black italic tracking-tighter text-red-600 group-hover:scale-105 transition-transform">LumBarong</span>
+                        <span className="text-xl md:text-2xl font-black italic tracking-tighter text-red-600 group-hover:scale-105 transition-transform">LumBarong</span>
                         {user.role !== 'customer' && (
                             <span className="bg-gray-900 text-white text-[8px] font-black uppercase px-2 py-0.5 rounded-full tracking-[0.1em]">
                                 {user.role}
@@ -119,7 +119,7 @@ export default function Navbar({ minimal = false }) {
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 onFocus={() => setShowSuggestions(suggestions.length > 0)}
-                                className="w-full bg-gray-50 border border-transparent focus:bg-white focus:border-red-500 rounded-full py-2.5 pl-12 pr-4 text-sm font-bold transition-all outline-none"
+                                className="w-full bg-gray-50 border border-transparent focus:bg-white focus:border-red-500 rounded-full py-2 pl-12 pr-4 text-sm font-bold transition-all outline-none"
                             />
                             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-red-500 transition-colors" size={18} />
                         </div>
@@ -147,7 +147,7 @@ export default function Navbar({ minimal = false }) {
                                             </div>
                                             <div className="flex-1 min-w-0">
                                                 <p className="text-xs font-black text-gray-900 truncate group-hover:text-red-600 transition-colors">{p.name}</p>
-                                                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">{p.category}</p>
+                                                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">{p.category?.name || (typeof p.category === 'string' ? p.category : 'Barong')}</p>
                                             </div>
                                             <p className="text-xs font-black text-gray-900">₱{p.price.toLocaleString()}</p>
                                         </div>

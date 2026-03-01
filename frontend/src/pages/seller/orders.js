@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { useAuth } from '@/context/AuthContext';
-import Navbar from '@/components/Navbar';
+import SellerLayout from '@/components/SellerLayout';
 import api from '@/utils/api';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -498,10 +498,8 @@ export default function SellerOrders() {
     };
 
     return (
-        <div className="min-h-screen bg-[#fdfbf7]">
-            <Navbar />
-
-            <main className="container mx-auto px-4 md:px-8 py-12">
+        <SellerLayout>
+            <div className="py-6">
                 {/* Back Button */}
                 <button
                     onClick={() => router.back()}
@@ -656,7 +654,7 @@ export default function SellerOrders() {
                         </div>
                     </div>
                 )}
-            </main>
-        </div>
+            </div>
+        </SellerLayout>
     );
 }

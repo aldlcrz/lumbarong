@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import Navbar from '@/components/Navbar';
+import SellerLayout from '@/components/SellerLayout';
 import api from '@/utils/api';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -120,10 +120,8 @@ export default function InventoryPage() {
     const lowStockCount = products.filter(p => p.stock <= (p.lowStockThreshold || 5)).length;
 
     return (
-        <div className="min-h-screen bg-[#fdfbf7]">
-            <Navbar />
-
-            <main className="container mx-auto px-4 md:px-8 py-12">
+        <SellerLayout>
+            <div className="py-6">
                 {/* Header Section */}
                 <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-12">
                     <div>
@@ -151,7 +149,7 @@ export default function InventoryPage() {
                         <Link href="/seller/add-product">
                             <button className="bg-red-600 text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-black transition-all shadow-xl shadow-red-100 flex items-center gap-2">
                                 <PlusCircle size={18} />
-                                Restock Collection
+                                Post New Design
                             </button>
                         </Link>
                     </div>
@@ -226,7 +224,7 @@ export default function InventoryPage() {
                                         {/* info */}
                                         <div className="flex-1 min-w-0">
                                             <div className="flex items-center gap-2 mb-1">
-                                                <span className="text-[8px] font-black uppercase tracking-widest text-gray-400">{product.category?.name || product.category}</span>
+                                                <span className="text-[8px] font-black uppercase tracking-widest text-gray-400">{product.category?.name || (typeof product.category === 'string' ? product.category : 'Barong')}</span>
                                             </div>
                                             <h3 className="text-xl font-black text-gray-900 tracking-tight">{product.name}</h3>
                                             <p className="text-xs text-gray-400 font-medium italic mb-3">SKU: {product.id?.toString().slice(-8).toUpperCase() || 'N/A'}</p>
@@ -359,48 +357,50 @@ export default function InventoryPage() {
                         )}
                     </div>
                 )}
-            </main>
+            </div>
 
             {/* Delete Confirmation Modal */}
             <AnimatePresence>
                 {deleteTarget && (
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[300] flex items-center justify-center p-4"
-                        onClick={() => setDeleteTarget(null)}
-                    >
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
                         <motion.div
-                            initial={{ scale: 0.9, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            exit={{ scale: 0.9, opacity: 0 }}
-                            className="bg-white rounded-[2rem] p-8 max-w-sm w-full shadow-2xl"
-                            onClick={(e) => e.stopPropagation()}
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            onClick={() => setDeleteTarget(null)}
+                            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+                        />
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                            className="bg-white rounded-[2.5rem] p-8 max-w-md w-full relative z-10 shadow-2xl border border-gray-100"
                         >
-                            <div className="w-14 h-14 rounded-2xl bg-red-50 flex items-center justify-center mb-6 mx-auto">
-                                <Trash2 size={28} className="text-red-600" />
+                            <div className="w-20 h-20 bg-red-50 rounded-3xl flex items-center justify-center mb-6 mx-auto">
+                                <Trash2 size={32} className="text-red-600" />
                             </div>
-                            <h3 className="text-xl font-black text-gray-900 text-center tracking-tight mb-2">Delete Product?</h3>
-                            <p className="text-sm text-gray-500 text-center font-medium mb-1">You are about to permanently delete:</p>
-                            <p className="text-sm font-black text-gray-900 text-center mb-1 italic">"{deleteTarget.name}"</p>
-                            <p className="text-xs text-red-500 text-center font-medium mb-8">This action cannot be undone.</p>
-                            <div className="flex gap-3">
+                            <h2 className="text-3xl font-black text-gray-900 tracking-tighter italic text-center mb-4">
+                                Unlist Pattern?
+                            </h2>
+                            <p className="text-gray-500 text-center font-medium italic mb-8">
+                                Are you sure you want to remove <span className="text-red-600 font-bold">"{deleteTarget.name}"</span> from your workshop? This action cannot be undone.
+                            </p>
+                            <div className="grid grid-cols-2 gap-4">
                                 <button
                                     onClick={() => setDeleteTarget(null)}
-                                    className="flex-1 py-3 rounded-xl bg-gray-100 text-gray-600 font-black text-xs uppercase tracking-widest hover:bg-gray-200 transition-all"
+                                    className="py-4 rounded-2xl font-black text-xs uppercase tracking-widest text-gray-400 hover:text-gray-900 hover:bg-gray-50 transition-all border border-gray-100"
                                 >
-                                    Cancel
+                                    Keep Design
                                 </button>
                                 <button
                                     onClick={() => handleDeleteProduct(deleteTarget.id)}
-                                    className="flex-1 py-3 rounded-xl bg-red-600 text-white font-black text-xs uppercase tracking-widest hover:bg-black transition-all"
+                                    className="py-4 rounded-2xl font-black text-xs uppercase tracking-widest bg-red-600 text-white hover:bg-black transition-all shadow-xl shadow-red-100"
                                 >
-                                    Delete
+                                    Delete Anyway
                                 </button>
                             </div>
                         </motion.div>
-                    </motion.div>
+                    </div>
                 )}
             </AnimatePresence>
 
@@ -410,16 +410,17 @@ export default function InventoryPage() {
                     <motion.div
                         initial={{ opacity: 0, y: 50 }}
                         animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: 50 }}
-                        className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[200]"
+                        exit={{ opacity: 0, scale: 0.9 }}
+                        className={`fixed bottom-8 left-1/2 -translate-x-1/2 z-[60] px-8 py-4 rounded-2xl shadow-2xl flex items-center gap-3 border ${notif.type === 'success'
+                            ? 'bg-black text-white border-white/10'
+                            : 'bg-red-600 text-white border-red-500'
+                            }`}
                     >
-                        <div className={`flex items-center gap-3 px-6 py-4 rounded-2xl shadow-2xl backdrop-blur-md border ${notif.type === 'success' ? 'bg-green-600/90 text-white border-green-500' : 'bg-red-600/90 text-white border-red-500'}`}>
-                            {notif.type === 'success' ? <CheckCircle2 size={20} /> : <AlertCircle size={20} />}
-                            <span className="text-sm font-black uppercase tracking-widest">{notif.message}</span>
-                        </div>
+                        {notif.type === 'success' ? <CheckCircle2 size={18} className="text-green-400" /> : <AlertCircle size={18} />}
+                        <span className="text-xs font-black uppercase tracking-widest">{notif.message}</span>
                     </motion.div>
                 )}
             </AnimatePresence>
-        </div>
+        </SellerLayout>
     );
 }

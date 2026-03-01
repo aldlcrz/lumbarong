@@ -51,7 +51,9 @@ class _SellerDashboardScreenState extends State<SellerDashboardScreen> {
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();
     if (!auth.isLoggedIn || auth.user!.role != 'seller') {
-      context.go('/');
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) context.go('/');
+      });
       return const SizedBox.shrink();
     }
     final user = auth.user!;

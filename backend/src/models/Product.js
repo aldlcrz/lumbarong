@@ -50,7 +50,7 @@ const Product = sequelize.define('Product', {
     },
     status: {
         type: DataTypes.ENUM('pending', 'approved', 'rejected'),
-        defaultValue: 'pending'
+        defaultValue: 'approved'
     }
 }, {
     timestamps: true,

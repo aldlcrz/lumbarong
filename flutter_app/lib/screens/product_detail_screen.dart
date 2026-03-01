@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../config/app_theme.dart';
 import '../models/product.dart';
 import '../providers/auth_provider.dart';
@@ -84,12 +85,36 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     } catch (_) {}
   }
 
+  Future<void> _launchUrl(String url) async {
+    final Uri uri = Uri.parse(url.startsWith('http') ? url : 'https://$url');
+    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Could not launch $url')));
+      }
+    }
+  }
+
+  Future<void> _makePhoneCall(String phoneNumber) async {
+    final Uri launchUri = Uri(scheme: 'tel', path: phoneNumber);
+    if (!await launchUrl(launchUri)) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Could not initiate call')),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();
     final cart = context.watch<CartProvider>();
     if (!auth.isLoggedIn) {
-      context.go('/');
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) context.go('/');
+      });
       return const SizedBox.shrink();
     }
 
@@ -202,11 +227,12 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             ),
             const SizedBox(height: 16),
             Text(
-              p.name,
+              p.name.toUpperCase(),
               style: const TextStyle(
-                fontSize: 32,
+                fontSize: 28,
                 fontWeight: FontWeight.w900,
                 color: AppTheme.textPrimary,
+                letterSpacing: 0.5,
                 height: 1.1,
               ),
             ),
@@ -214,19 +240,20 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             Text(
               fmt.format(p.price),
               style: const TextStyle(
-                fontSize: 28,
+                fontSize: 26,
                 fontWeight: FontWeight.w900,
                 color: AppTheme.primary,
+                fontStyle: FontStyle.italic,
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 32),
             if (p.description != null && p.description!.isNotEmpty) ...[
               const Text(
                 'THE CRAFTSMANSHIP',
                 style: TextStyle(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: 1.5,
+                  fontSize: 9,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 2,
                   color: AppTheme.textMuted,
                 ),
               ),
@@ -236,144 +263,276 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                 style: const TextStyle(
                   fontSize: 15,
                   color: AppTheme.textSecondary,
-                  height: 1.7,
+                  height: 1.8,
                 ),
               ),
             ],
             const SizedBox(height: 40),
             if (p.seller != null) ...[
               const Text(
-                'CURATED BY',
+                'ARTISAN PROFILE',
                 style: TextStyle(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: 1.5,
+                  fontSize: 9,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 2,
                   color: AppTheme.textMuted,
                 ),
               ),
               const SizedBox(height: 12),
               Container(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: AppTheme.borderLight),
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(
+                    color: AppTheme.borderLight.withValues(alpha: 0.5),
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.02),
+                      blurRadius: 15,
+                    ),
+                  ],
                 ),
                 child: Row(
                   children: [
                     CircleAvatar(
+                      radius: 24,
                       backgroundColor: AppTheme.primary.withValues(alpha: 0.1),
-                      child: Text(
-                        (p.seller!.shopName ?? p.seller!.name)
-                            .substring(0, 1)
-                            .toUpperCase(),
-                        style: const TextStyle(
-                          color: AppTheme.primary,
-                          fontWeight: FontWeight.w900,
-                        ),
-                      ),
+                      backgroundImage: p.seller?.profileImage != null
+                          ? CachedNetworkImageProvider(p.seller!.profileImage!)
+                          : null,
+                      child: p.seller?.profileImage == null
+                          ? Text(
+                              (p.seller!.shopName ?? p.seller!.name)
+                                  .substring(0, 1)
+                                  .toUpperCase(),
+                              style: const TextStyle(
+                                color: AppTheme.primary,
+                                fontWeight: FontWeight.w900,
+                              ),
+                            )
+                          : null,
                     ),
                     const SizedBox(width: 16),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          (p.seller!.shopName ?? p.seller!.name).toUpperCase(),
-                          style: const TextStyle(
-                            fontWeight: FontWeight.w800,
-                            fontSize: 13,
-                            letterSpacing: 0.5,
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            (p.seller!.shopName ?? p.seller!.name)
+                                .toUpperCase(),
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w900,
+                              fontSize: 13,
+                              letterSpacing: 0.5,
+                            ),
                           ),
-                        ),
-                        const Text(
-                          'Authenticated Artisan',
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: AppTheme.textMuted,
+                          const SizedBox(height: 2),
+                          const Text(
+                            'Authenticated Heritage Provider',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w500,
+                              color: AppTheme.textMuted,
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                    const Spacer(),
                     const Icon(
                       Icons.verified_rounded,
-                      color: Color(0xFF10B981),
-                      size: 20,
+                      color: Color(0xFFD4AF37), // Artisan Gold
+                      size: 22,
                     ),
                   ],
                 ),
               ),
+              if (p.seller != null &&
+                  ((p.seller!.phone?.isNotEmpty ?? false) ||
+                      (p.seller!.facebook?.isNotEmpty ?? false) ||
+                      (p.seller!.instagram?.isNotEmpty ?? false) ||
+                      (p.seller!.tiktok?.isNotEmpty ?? false) ||
+                      (p.seller!.twitter?.isNotEmpty ?? false))) ...[
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: AppTheme.borderLight.withValues(alpha: 0.5),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (p.seller!.phone != null &&
+                          p.seller!.phone!.isNotEmpty)
+                        IconButton(
+                          onPressed: () => _makePhoneCall(p.seller!.phone!),
+                          icon: const Icon(
+                            Icons.phone_rounded,
+                            color: AppTheme.primary,
+                            size: 18,
+                          ),
+                          tooltip: 'Call Business',
+                        ),
+                      if (p.seller!.facebook != null &&
+                          p.seller!.facebook!.isNotEmpty)
+                        IconButton(
+                          onPressed: () => _launchUrl(p.seller!.facebook!),
+                          icon: const Icon(
+                            Icons.facebook_rounded,
+                            color: Color(0xFF1877F2), // FB Blue
+                            size: 18,
+                          ),
+                          tooltip: 'Facebook',
+                        ),
+                      if (p.seller!.instagram != null &&
+                          p.seller!.instagram!.isNotEmpty)
+                        IconButton(
+                          onPressed: () => _launchUrl(
+                            p.seller!.instagram!.startsWith('@')
+                                ? 'https://instagram.com/${p.seller!.instagram!.substring(1)}'
+                                : p.seller!.instagram!,
+                          ),
+                          icon: const Icon(
+                            Icons.camera_alt_rounded,
+                            color: Color(0xFFE4405F), // IG
+                            size: 18,
+                          ),
+                          tooltip: 'Instagram',
+                        ),
+                      if (p.seller!.tiktok != null &&
+                          p.seller!.tiktok!.isNotEmpty)
+                        IconButton(
+                          onPressed: () => _launchUrl(
+                            p.seller!.tiktok!.startsWith('@')
+                                ? 'https://tiktok.com/${p.seller!.tiktok!}'
+                                : p.seller!.tiktok!,
+                          ),
+                          icon: const Icon(
+                            Icons.video_library_rounded,
+                            color: Colors.black, // TikTok Black
+                            size: 18,
+                          ),
+                          tooltip: 'TikTok',
+                        ),
+                      if (p.seller!.twitter != null &&
+                          p.seller!.twitter!.isNotEmpty)
+                        IconButton(
+                          onPressed: () => _launchUrl(p.seller!.twitter!),
+                          icon: const Icon(
+                            Icons.flutter_dash_rounded,
+                            color: Color(0xFF1DA1F2), // Twitter/X Blue
+                            size: 18,
+                          ),
+                          tooltip: 'Twitter',
+                        ),
+                    ],
+                  ),
+                ),
+              ],
             ],
-            const SizedBox(height: 100), // Spacing for fab
+            const SizedBox(height: 100), // Spacing for fab bottom bar
           ],
         ),
       ),
       bottomNavigationBar: Container(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.fromLTRB(24, 20, 24, 32),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(36)),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.05),
-              blurRadius: 10,
-              offset: const Offset(0, -4),
+              blurRadius: 20,
+              offset: const Offset(0, -8),
             ),
           ],
         ),
         child: Row(
           children: [
             Container(
+              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
               decoration: BoxDecoration(
                 color: AppTheme.background,
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(
+                  color: AppTheme.borderLight.withValues(alpha: 0.5),
+                ),
               ),
               child: Row(
                 children: [
-                  IconButton(
-                    onPressed: quantity > 1
+                  _QtyActionBtn(
+                    icon: Icons.remove_rounded,
+                    onTap: quantity > 1
                         ? () => setState(() => quantity--)
                         : null,
-                    icon: const Icon(Icons.remove_rounded),
                   ),
-                  Text(
-                    '$quantity',
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w900,
-                      fontSize: 18,
+                  SizedBox(
+                    width: 40,
+                    child: Text(
+                      '$quantity',
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w900,
+                        fontSize: 16,
+                        color: AppTheme.textPrimary,
+                      ),
                     ),
                   ),
-                  IconButton(
-                    onPressed: quantity < p.stock
+                  _QtyActionBtn(
+                    icon: Icons.add_rounded,
+                    onTap: quantity < p.stock
                         ? () => setState(() => quantity++)
                         : null,
-                    icon: const Icon(Icons.add_rounded),
                   ),
                 ],
               ),
             ),
-            const SizedBox(width: 16),
+            const SizedBox(width: 20),
             Expanded(
               child: ElevatedButton(
-                onPressed: () {
-                  cart.addToCart(p, quantity);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Added to your collection'),
-                      behavior: SnackBarBehavior.floating,
-                      backgroundColor: AppTheme.darkSection,
-                    ),
-                  );
-                },
+                onPressed: p.stock == 0
+                    ? null
+                    : () {
+                        if (quantity > p.stock) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Limited availability in stock.'),
+                              behavior: SnackBarBehavior.floating,
+                            ),
+                          );
+                          return;
+                        }
+                        cart.addToCart(p, quantity);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Added to Collection'),
+                            behavior: SnackBarBehavior.floating,
+                            backgroundColor: AppTheme.darkSection,
+                          ),
+                        );
+                      },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppTheme.primary,
-                  padding: const EdgeInsets.symmetric(vertical: 18),
+                  padding: const EdgeInsets.symmetric(vertical: 20),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(18),
+                  ),
+                  elevation: 0,
                 ),
-                child: const Text(
-                  'ADD TO CART',
-                  style: TextStyle(
-                    letterSpacing: 1.5,
+                child: Text(
+                  p.stock == 0 ? 'NOT AVAILABLE' : 'ADD TO COLLECTION',
+                  style: const TextStyle(
+                    letterSpacing: 1.2,
                     fontWeight: FontWeight.w900,
+                    fontSize: 12,
                   ),
                 ),
               ),
@@ -381,6 +540,25 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _QtyActionBtn extends StatelessWidget {
+  final IconData icon;
+  final VoidCallback? onTap;
+  const _QtyActionBtn({required this.icon, this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+      onPressed: onTap,
+      icon: Icon(
+        icon,
+        size: 20,
+        color: onTap == null ? AppTheme.textMuted : AppTheme.textPrimary,
+      ),
+      visualDensity: VisualDensity.compact,
     );
   }
 }

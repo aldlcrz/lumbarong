@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-    baseURL: 'http://127.0.0.1:5000/api/v1',
+    baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1',
 });
 
 // Add token to requests if available

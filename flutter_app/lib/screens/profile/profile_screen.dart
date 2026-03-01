@@ -12,7 +12,9 @@ class ProfileScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();
     if (!auth.isLoggedIn) {
-      context.go('/');
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (context.mounted) context.go('/');
+      });
       return const SizedBox.shrink();
     }
 
@@ -38,12 +40,12 @@ class ProfileScreen extends StatelessWidget {
                 border: Border.all(
                   color: user.role == 'seller'
                       ? Colors.white.withValues(alpha: 0.1)
-                      : AppTheme.borderLight,
+                      : AppTheme.borderLight.withValues(alpha: 0.5),
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.05),
-                    blurRadius: 20,
+                    color: Colors.black.withValues(alpha: 0.03),
+                    blurRadius: 25,
                     offset: const Offset(0, 10),
                   ),
                 ],
@@ -51,72 +53,86 @@ class ProfileScreen extends StatelessWidget {
               child: Column(
                 children: [
                   Container(
-                    width: 80,
-                    height: 80,
+                    width: 90,
+                    height: 90,
+                    padding: const EdgeInsets.all(4),
                     decoration: BoxDecoration(
-                      color: user.role == 'seller'
-                          ? Colors.white.withValues(alpha: 0.1)
-                          : AppTheme.primary.withValues(alpha: 0.1),
                       shape: BoxShape.circle,
-                      border: user.role == 'seller'
-                          ? Border.all(
-                              color: Colors.white.withValues(alpha: 0.2),
-                            )
-                          : null,
+                      border: Border.all(
+                        color: user.role == 'seller'
+                            ? AppTheme.primary.withValues(alpha: 0.3)
+                            : AppTheme.borderLight,
+                        width: 2,
+                      ),
                     ),
-                    child: Center(
-                      child: Text(
-                        user.name.isNotEmpty ? user.name[0].toUpperCase() : '?',
-                        style: TextStyle(
-                          fontSize: 32,
-                          fontWeight: FontWeight.w900,
-                          color: user.role == 'seller'
-                              ? Colors.white
-                              : AppTheme.primary,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: user.role == 'seller'
+                            ? Colors.white.withValues(alpha: 0.05)
+                            : AppTheme.background,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Center(
+                        child: Text(
+                          user.name.isNotEmpty
+                              ? user.name[0].toUpperCase()
+                              : '?',
+                          style: TextStyle(
+                            fontSize: 36,
+                            fontWeight: FontWeight.w900,
+                            color: user.role == 'seller'
+                                ? Colors.white
+                                : AppTheme.primary,
+                          ),
                         ),
                       ),
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 20),
                   Text(
-                    user.role == 'seller'
-                        ? (user.shopName ?? user.name)
-                        : user.name,
+                    (user.role == 'seller'
+                            ? (user.shopName ?? user.name)
+                            : user.name)
+                        .toUpperCase(),
+                    textAlign: TextAlign.center,
                     style: TextStyle(
-                      fontSize: 22,
+                      fontSize: 20,
                       fontWeight: FontWeight.w900,
+                      letterSpacing: 0.5,
                       color: user.role == 'seller'
                           ? Colors.white
                           : AppTheme.textPrimary,
                     ),
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 6),
                   Text(
-                    user.email,
+                    user.email.toLowerCase(),
                     style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
                       color: user.role == 'seller'
-                          ? Colors.white.withValues(alpha: 0.6)
+                          ? Colors.white.withValues(alpha: 0.5)
                           : AppTheme.textMuted,
                     ),
                   ),
                   if (user.role == 'seller') ...[
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 20),
                     Container(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
+                        horizontal: 14,
+                        vertical: 8,
                       ),
                       decoration: BoxDecoration(
                         color: user.isVerified
-                            ? const Color(0xFF10B981).withValues(alpha: 0.2)
-                            : Colors.orange.withValues(alpha: 0.2),
-                        borderRadius: BorderRadius.circular(10),
+                            ? const Color(0xFFD4AF37).withValues(
+                                alpha: 0.15,
+                              ) // Artisan Gold
+                            : Colors.orange.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(14),
                         border: Border.all(
                           color: user.isVerified
-                              ? const Color(0xFF10B981).withValues(alpha: 0.4)
-                              : Colors.orange.withValues(alpha: 0.4),
+                              ? const Color(0xFFD4AF37).withValues(alpha: 0.3)
+                              : Colors.orange.withValues(alpha: 0.3),
                         ),
                       ),
                       child: Row(
@@ -124,24 +140,24 @@ class ProfileScreen extends StatelessWidget {
                         children: [
                           Icon(
                             user.isVerified
-                                ? Icons.verified
-                                : Icons.hourglass_empty,
+                                ? Icons.verified_rounded
+                                : Icons.hourglass_empty_rounded,
                             size: 14,
                             color: user.isVerified
-                                ? const Color(0xFF34D399)
+                                ? const Color(0xFFD4AF37)
                                 : Colors.orange,
                           ),
                           const SizedBox(width: 8),
                           Text(
                             user.isVerified
                                 ? 'VERIFIED ARTISAN'
-                                : 'PENDING VERIFICATION',
+                                : 'PENDING APPROVAL',
                             style: TextStyle(
-                              fontSize: 10,
+                              fontSize: 9,
                               fontWeight: FontWeight.w900,
-                              letterSpacing: 0.5,
+                              letterSpacing: 1,
                               color: user.isVerified
-                                  ? const Color(0xFF34D399)
+                                  ? const Color(0xFFD4AF37)
                                   : Colors.orange,
                             ),
                           ),
@@ -149,7 +165,7 @@ class ProfileScreen extends StatelessWidget {
                       ),
                     ),
                   ] else ...[
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 20),
                     Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 16,
@@ -161,11 +177,11 @@ class ProfileScreen extends StatelessWidget {
                         border: Border.all(color: AppTheme.borderLight),
                       ),
                       child: Text(
-                        user.role.toUpperCase(),
+                        'COLLECTOR',
                         style: const TextStyle(
-                          fontSize: 10,
+                          fontSize: 9,
                           fontWeight: FontWeight.w900,
-                          letterSpacing: 1.5,
+                          letterSpacing: 2,
                           color: AppTheme.textSecondary,
                         ),
                       ),
@@ -242,13 +258,14 @@ class ProfileScreen extends StatelessWidget {
             ],
 
             const SizedBox(height: 12),
-            _buildActionTile(
-              icon: Icons.chat_bubble_outline_rounded,
-              title: 'Message Center',
-              subtitle:
-                  'Chat with ${user.role == 'customer' ? 'artisans' : 'customers'}',
-              onTap: () => context.push('/messages'),
-            ),
+            if (user.role != 'admin')
+              _buildActionTile(
+                icon: Icons.chat_bubble_outline_rounded,
+                title: 'Message Center',
+                subtitle:
+                    'Chat with ${user.role == 'customer' ? 'artisans' : 'customers'}',
+                onTap: () => context.push('/messages'),
+              ),
 
             const SizedBox(height: 32),
             _buildSectionHeader('SYSTEM'),

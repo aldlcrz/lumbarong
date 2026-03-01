@@ -128,7 +128,7 @@ export default function MyCatalog() {
                                     <div className="flex-1 min-w-0 py-2">
                                         <div className="flex items-center gap-2 mb-2">
                                             <span className="bg-red-50 text-red-600 px-3 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest border border-red-100">
-                                                {product.category}
+                                                {product.category?.name || (typeof product.category === 'string' ? product.category : 'Barong')}
                                             </span>
                                             <div className={`flex items-center gap-1.5 px-3 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest border ${product.stock < 5 ? 'bg-amber-50 text-amber-600 border-amber-100' : 'bg-gray-50 text-gray-400 border-gray-100'}`}>
                                                 <Package size={10} />

@@ -3,15 +3,15 @@ import 'package:google_fonts/google_fonts.dart';
 
 /// LumBarong design: #fdfbf7 background, red-600 primary, gray-900 text.
 class AppTheme {
-  static const Color background = Color(0xFFFDFBF7);
-  static const Color primary = Color(0xFFDC2626); // red-600
-  static const Color primaryDark = Color(0xFFB91C1C); // red-700
+  static const Color background = Color(0xFFFAF7F2);
+  static const Color primary = Color(0xFFA63A3A); // Heritage Red
+  static const Color primaryDark = Color(0xFF8B2F2F);
   static const Color surface = Colors.white;
-  static const Color textPrimary = Color(0xFF111827); // gray-900
-  static const Color textSecondary = Color(0xFF6B7280); // gray-500
-  static const Color textMuted = Color(0xFF9CA3AF); // gray-400
-  static const Color darkSection = Color(0xFF111827); // gray-900
-  static const Color borderLight = Color(0xFFF3F4F6); // gray-100
+  static const Color textPrimary = Color(0xFF121212); // Obsidian
+  static const Color textSecondary = Color(0xFF4A4A4A);
+  static const Color textMuted = Color(0xFF8E8E8E);
+  static const Color darkSection = Color(0xFF1A1A1A);
+  static const Color borderLight = Color(0xFFE0D7CC); // Sandstone
 
   static ThemeData get theme {
     final base = ThemeData(useMaterial3: true);
@@ -27,30 +27,30 @@ class AppTheme {
       scaffoldBackgroundColor: background,
       textTheme: GoogleFonts.interTextTheme(base.textTheme).copyWith(
         headlineLarge: GoogleFonts.inter(
-          fontSize: 36,
+          fontSize: 30,
           fontWeight: FontWeight.w900,
           color: textPrimary,
         ),
         headlineMedium: GoogleFonts.inter(
-          fontSize: 28,
+          fontSize: 24,
           fontWeight: FontWeight.w900,
           color: textPrimary,
         ),
         titleLarge: GoogleFonts.inter(
-          fontSize: 20,
+          fontSize: 18,
           fontWeight: FontWeight.w800,
           color: textPrimary,
         ),
         bodyLarge: GoogleFonts.inter(
-          fontSize: 16,
+          fontSize: 14,
           fontWeight: FontWeight.w500,
           color: textPrimary,
         ),
-        bodyMedium: GoogleFonts.inter(fontSize: 14, color: textSecondary),
+        bodyMedium: GoogleFonts.inter(fontSize: 13, color: textSecondary),
         labelSmall: GoogleFonts.inter(
-          fontSize: 10,
+          fontSize: 9,
           fontWeight: FontWeight.w800,
-          letterSpacing: 1.5,
+          letterSpacing: 1.2,
           color: textMuted,
         ),
       ),
@@ -61,7 +61,7 @@ class AppTheme {
         surfaceTintColor: Colors.transparent,
         centerTitle: false,
         titleTextStyle: GoogleFonts.inter(
-          fontSize: 24,
+          fontSize: 20,
           fontWeight: FontWeight.w900,
           fontStyle: FontStyle.italic,
           color: primary,
@@ -74,12 +74,12 @@ class AppTheme {
           foregroundColor: Colors.white,
           elevation: 0,
           shadowColor: primary.withValues(alpha: 0.4),
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(16),
           ),
           textStyle: GoogleFonts.inter(
-            fontSize: 14,
+            fontSize: 13,
             fontWeight: FontWeight.w800,
           ),
         ),
@@ -88,12 +88,12 @@ class AppTheme {
         style: OutlinedButton.styleFrom(
           foregroundColor: textPrimary,
           side: const BorderSide(color: borderLight, width: 1.5),
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(16),
           ),
           textStyle: GoogleFonts.inter(
-            fontSize: 14,
+            fontSize: 13,
             fontWeight: FontWeight.w700,
           ),
         ),
@@ -114,8 +114,8 @@ class AppTheme {
           borderSide: const BorderSide(color: primary, width: 1.5),
         ),
         contentPadding: const EdgeInsets.symmetric(
-          horizontal: 20,
-          vertical: 16,
+          horizontal: 16,
+          vertical: 12,
         ),
         labelStyle: GoogleFonts.inter(
           fontSize: 10,

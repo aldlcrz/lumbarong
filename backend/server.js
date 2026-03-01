@@ -14,13 +14,15 @@ require('./src/models/Address');
 
 const server = http.createServer(app);
 const allowedOrigins = [
-    process.env.FRONTEND_URL,
     'http://localhost:3000',
     'http://localhost:3001',
-    'http://localhost:8080',
+    'http://localhost:5000',
     'http://127.0.0.1:3000',
     'http://127.0.0.1:3001',
-    'http://127.0.0.1:8080',
+    'http://127.0.0.1:5000',
+    'http://192.168.100.5:3000',
+    'http://192.168.100.5:3001',
+    'http://192.168.100.5:5000',
 ].filter(Boolean);
 const io = new Server(server, {
     cors: {
@@ -63,7 +65,7 @@ const startServer = async () => {
         console.log('⚠️ Server will continue to run, but DB-dependent features will fail.');
     }
 
-    server.listen(PORT, () => {
+    server.listen(PORT, '0.0.0.0', () => {
         console.log(`🚀 Server is running on port ${PORT}`);
         console.log(`📡 API Health Check: http://localhost:${PORT}/api/v1/health`);
     });

@@ -49,8 +49,8 @@ export default function Cart() {
                     {/* Items List */}
                     <div className="flex-1 space-y-4">
                         {cartItems.map((item) => (
-                            <div key={item.product.id} className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex gap-4 items-center">
-                                <div className="w-24 h-32 rounded-xl overflow-hidden bg-gray-50 shrink-0">
+                            <div key={item.product.id} className="bg-white p-3 rounded-2xl shadow-sm border border-gray-100 flex gap-4 items-center">
+                                <div className="w-20 h-28 rounded-xl overflow-hidden bg-gray-50 shrink-0">
                                     <img
                                         src={item.product.images?.[0]?.url || item.product.images?.[0] || 'https://via.placeholder.com/100x130'}
                                         alt={item.product.name}
@@ -58,22 +58,22 @@ export default function Cart() {
                                     />
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                    <p className="text-[10px] font-black uppercase text-red-600 tracking-widest">{item.product.category}</p>
-                                    <h3 className="text-lg font-bold text-gray-900 truncate">{item.product.name}</h3>
-                                    <p className="text-gray-500 text-sm mb-2">{item.product.seller?.shopName || 'Heritage Artisan'}</p>
+                                    <p className="text-[10px] font-black uppercase text-red-600 tracking-widest">{item.product.category?.name || (typeof item.product.category === 'string' ? item.product.category : 'Barong')}</p>
+                                    <h3 className="text-base font-bold text-gray-900 truncate">{item.product.name}</h3>
+                                    <p className="text-gray-500 text-xs mb-1">{item.product.seller?.shopName || 'Heritage Artisan'}</p>
                                     <div className="flex items-center justify-between">
-                                        <p className="text-xl font-black text-gray-900">₱{(item.product.price * item.quantity).toLocaleString()}</p>
+                                        <p className="text-lg font-black text-gray-900">₱{(item.product.price * item.quantity).toLocaleString()}</p>
 
                                         <div className="flex items-center border border-gray-100 rounded-xl overflow-hidden bg-gray-50">
                                             <button
                                                 onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
-                                                className="w-10 h-10 flex items-center justify-center hover:bg-gray-100 transition-colors"
-                                            ><Minus size={14} /></button>
-                                            <span className="w-10 h-10 flex items-center justify-center font-bold">{item.quantity}</span>
+                                                className="w-8 h-8 flex items-center justify-center hover:bg-gray-100 transition-colors"
+                                            ><Minus size={12} /></button>
+                                            <span className="w-8 h-8 flex items-center justify-center font-bold text-sm">{item.quantity}</span>
                                             <button
                                                 onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
-                                                className="w-10 h-10 flex items-center justify-center hover:bg-gray-100 transition-colors"
-                                            ><Plus size={14} /></button>
+                                                className="w-8 h-8 flex items-center justify-center hover:bg-gray-100 transition-colors"
+                                            ><Plus size={12} /></button>
                                         </div>
                                     </div>
                                 </div>
@@ -88,9 +88,9 @@ export default function Cart() {
                     </div>
 
                     {/* Summary Sidebar */}
-                    <div className="w-full lg:w-[400px] sticky bottom-4 lg:top-24">
-                        <div className="bg-gray-900 text-white p-8 rounded-3xl shadow-2xl">
-                            <h2 className="text-2xl font-black mb-8">Summary</h2>
+                    <div className="w-full lg:w-[360px] sticky bottom-4 lg:top-24">
+                        <div className="bg-gray-900 text-white p-6 rounded-3xl shadow-2xl">
+                            <h2 className="text-xl font-black mb-6">Summary</h2>
 
                             <div className="space-y-4 mb-8">
                                 <div className="flex justify-between text-gray-400">
@@ -106,18 +106,18 @@ export default function Cart() {
                                     <span>₱0.00</span>
                                 </div>
                                 <div className="pt-4 border-t border-white/10 flex justify-between items-end">
-                                    <span className="text-lg font-bold">Total</span>
+                                    <span className="text-base font-bold">Total</span>
                                     <div className="text-right">
-                                        <p className="text-3xl font-black text-red-500">₱{cartTotal.toLocaleString()}</p>
+                                        <p className="text-2xl font-black text-red-500">₱{cartTotal.toLocaleString()}</p>
                                         <p className="text-[10px] text-gray-500 italic mt-1">VAT Included</p>
                                     </div>
                                 </div>
                             </div>
 
                             <Link href="/checkout">
-                                <button className="w-full bg-red-600 hover:bg-red-700 text-white h-16 rounded-2xl font-black text-lg flex items-center justify-center gap-3 transition-all shadow-xl shadow-red-900/40">
+                                <button className="w-full bg-red-600 hover:bg-red-700 text-white h-14 rounded-2xl font-black text-base flex items-center justify-center gap-3 transition-all shadow-xl shadow-red-900/40">
                                     Proceed to Checkout
-                                    <ArrowRight size={20} />
+                                    <ArrowRight size={18} />
                                 </button>
                             </Link>
 

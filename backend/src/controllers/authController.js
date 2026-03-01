@@ -48,14 +48,22 @@ exports.register = async (req, res) => {
                 name,
                 email,
                 role: user.role,
-                isVerified: user.isVerified
+                isVerified: user.isVerified,
+                profileImage: user.profileImage
             },
             message: 'Registration successful.'
         });
 
         // Notify admin if a seller registers
-        if (userRole === 'seller' && req.app.get('io')) {
-            req.app.get('io').emit('dashboard_update');
+        if (userRole === 'seller') {
+            const { sendNotification } = require('../utils/notificationHelper');
+            const admin = await User.findOne({ where: { role: 'admin' } });
+            if (admin) {
+                await sendNotification(admin.id, `New artisan registration: ${shopName || name}`, 'system');
+            }
+            if (req.app.get('io')) {
+                req.app.get('io').emit('dashboard_update');
+            }
         }
     } catch (error) {
         res.status(500).json({ message: 'Server error', error: error.message });
@@ -92,7 +100,8 @@ exports.login = async (req, res) => {
                 name: user.name,
                 email: user.email,
                 role: user.role,
-                isVerified: user.isVerified
+                isVerified: user.isVerified,
+                profileImage: user.profileImage
             }
         });
     } catch (error) {
@@ -184,6 +193,7 @@ exports.getSellers = async (req, res) => {
 
             return {
                 ...seller.toJSON(),
+                profileImage: seller.profileImage,
                 productCount: products.length,
                 averageRating,
                 totalReviews
@@ -343,6 +353,7 @@ exports.getSellerProfile = async (req, res) => {
 
         res.json({
             ...seller.toJSON(),
+            profileImage: seller.profileImage,
             productCount: products.length,
             averageRating,
             totalReviews

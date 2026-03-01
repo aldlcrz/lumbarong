@@ -43,7 +43,9 @@ class _MessagesScreenState extends State<MessagesScreen> {
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();
     if (!auth.isLoggedIn) {
-      context.go('/');
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) context.go('/');
+      });
       return const SizedBox.shrink();
     }
     return Scaffold(
@@ -102,7 +104,10 @@ class _MessagesScreenState extends State<MessagesScreen> {
                   final conv = _conversations[i];
                   final otherUser = conv['otherUser'] as Map? ?? {};
                   final lastMsg = conv['lastMessage'] ?? '';
-                  final timestamp = DateTime.parse(conv['timestamp']);
+                  final timestamp = conv['timestamp'] != null
+                      ? DateTime.tryParse(conv['timestamp'].toString()) ??
+                            DateTime.now()
+                      : DateTime.now();
                   final unread = conv['unreadCount'] ?? 0;
 
                   return ListTile(
@@ -212,7 +217,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
                     ),
                     onTap: () {
                       context.push(
-                        '/chat/${otherUser['id']}/${otherUser['shopName'] ?? otherUser['name']}',
+                        '/chat/${otherUser['id']}/${Uri.encodeComponent((otherUser['shopName'] ?? otherUser['name'] ?? 'User').toString())}',
                       );
                     },
                   );

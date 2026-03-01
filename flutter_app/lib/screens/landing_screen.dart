@@ -39,25 +39,15 @@ class _LandingScreenState extends State<LandingScreen> {
   @override
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();
+    // While auth is initializing, show a loader.
+    // GoRouter's redirect (refreshListenable: authProvider) handles all
+    // role-based navigation once loading completes — no context.go() needed here.
     if (auth.loading) {
       return const BarongScaffold(
         child: Center(
           child: CircularProgressIndicator(color: AppTheme.primary),
         ),
       );
-    }
-    if (auth.isLoggedIn) {
-      final role = auth.user!.role;
-      if (role == 'admin') {
-        context.go('/admin/dashboard');
-        return const SizedBox.shrink();
-      }
-      if (role == 'seller') {
-        context.go('/seller/dashboard');
-        return const SizedBox.shrink();
-      }
-      context.go('/home');
-      return const SizedBox.shrink();
     }
 
     return BarongScaffold(
@@ -120,127 +110,231 @@ class _LandingScreenState extends State<LandingScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 40),
                     // Badge inspired by web
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 14,
-                        vertical: 8,
-                      ),
-                      decoration: BoxDecoration(
-                        color: AppTheme.primary.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(24),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Container(
-                            width: 6,
-                            height: 6,
-                            decoration: const BoxDecoration(
-                              color: AppTheme.primary,
-                              shape: BoxShape.circle,
+                    Center(
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 10,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppTheme.primary.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              width: 8,
+                              height: 8,
+                              decoration: const BoxDecoration(
+                                color: AppTheme.primary,
+                                shape: BoxShape.circle,
+                              ),
                             ),
-                          ),
-                          const SizedBox(width: 8),
-                          const Text(
-                            'SUPPORTING LUZON ARTISANS',
-                            style: TextStyle(
-                              fontSize: 9,
-                              fontWeight: FontWeight.w900,
-                              color: AppTheme.primary,
-                              letterSpacing: 1,
+                            const SizedBox(width: 10),
+                            const Text(
+                              'SUPPORTING LUZON ARTISANS',
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w900,
+                                color: AppTheme.primary,
+                                letterSpacing: 1.5,
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 40),
+                    const SizedBox(height: 40),
                     const Text(
                       'Wear the',
                       style: TextStyle(
-                        fontSize: 52,
+                        fontSize: 56,
                         fontWeight: FontWeight.w900,
-                        height: 1.1,
+                        height: 0.9,
+                        letterSpacing: -2,
                         color: AppTheme.textPrimary,
                       ),
                     ),
                     const Text(
                       'Spirit',
                       style: TextStyle(
-                        fontSize: 64,
+                        fontSize: 84,
                         fontWeight: FontWeight.w900,
                         fontStyle: FontStyle.italic,
                         color: AppTheme.primary,
-                        height: 0.9,
+                        height: 1.0,
+                        letterSpacing: -3,
                       ),
                     ),
                     const Text(
                       'of the Philippines.',
                       style: TextStyle(
-                        fontSize: 40,
+                        fontSize: 36,
                         fontWeight: FontWeight.w900,
-                        height: 1.1,
+                        height: 0.9,
+                        letterSpacing: -1,
                         color: AppTheme.textPrimary,
                       ),
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 24),
                     const Text(
                       'LumBarong connects you directly with master embroiderers of Lumban. Authentic, high-quality traditional wear delivered to your doorstep.',
                       style: TextStyle(
-                        fontSize: 15,
+                        fontSize: 16,
                         color: AppTheme.textSecondary,
+                        fontWeight: FontWeight.w500,
                         height: 1.6,
                       ),
                     ),
-                    const SizedBox(height: 36),
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: () => context.push('/register'),
-                        style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 20),
-                          backgroundColor: AppTheme.primary,
-                        ),
-                        child: const Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              'START YOUR COLLECTION',
-                              style: TextStyle(letterSpacing: 1),
+                    const SizedBox(height: 48),
+                    Center(
+                      child: Column(
+                        children: [
+                          SizedBox(
+                            width: double.infinity,
+                            height: 72,
+                            child: ElevatedButton(
+                              onPressed: () => context.push('/register'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppTheme.primary,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(24),
+                                ),
+                                elevation: 20,
+                                shadowColor: AppTheme.primary.withValues(
+                                  alpha: 0.3,
+                                ),
+                              ),
+                              child: const Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    'START YOUR COLLECTION',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w900,
+                                      letterSpacing: 1,
+                                    ),
+                                  ),
+                                  SizedBox(width: 12),
+                                  Icon(Icons.arrow_forward_rounded, size: 24),
+                                ],
+                              ),
                             ),
-                            SizedBox(width: 12),
-                            Icon(Icons.arrow_forward, size: 20),
+                          ),
+                          const SizedBox(height: 16),
+                          SizedBox(
+                            width: double.infinity,
+                            height: 72,
+                            child: OutlinedButton(
+                              onPressed: () => context.push('/login'),
+                              style: OutlinedButton.styleFrom(
+                                side: const BorderSide(
+                                  color: AppTheme.borderLight,
+                                  width: 2,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(24),
+                                ),
+                              ),
+                              child: const Text(
+                                'BROWSE COLLECTION',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w900,
+                                  letterSpacing: 1,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 48),
+                    // Decorative Hero Image inspired by web
+                    Center(
+                      child: SizedBox(
+                        height: 440,
+                        width: double.infinity,
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            // The red floating block
+                            Positioned(
+                              left: 20,
+                              child: Container(
+                                width: 180,
+                                height: 260,
+                                decoration: BoxDecoration(
+                                  color: AppTheme.primary,
+                                  borderRadius: BorderRadius.circular(40),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: AppTheme.primary.withValues(
+                                        alpha: 0.3,
+                                      ),
+                                      blurRadius: 40,
+                                      offset: const Offset(0, 10),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            // The image card
+                            Container(
+                              width: 260,
+                              height: 380,
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                border: Border.all(
+                                  color: Colors.white,
+                                  width: 16, // Matched to web's thick border
+                                ),
+                                borderRadius: BorderRadius.circular(64),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withValues(alpha: 0.1),
+                                    blurRadius: 40,
+                                    offset: const Offset(0, 20),
+                                  ),
+                                ],
+                              ),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(56),
+                                child: Image.network(
+                                  'https://images.unsplash.com/photo-1544441893-675973e31985?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                            ),
                           ],
                         ),
                       ),
                     ),
                     const SizedBox(height: 16),
-                    SizedBox(
-                      width: double.infinity,
-                      child: OutlinedButton(
-                        onPressed: () => context.push('/login'),
-                        style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 20),
-                        ),
-                        child: const Text(
-                          'BROWSE CATALOG',
-                          style: TextStyle(letterSpacing: 1),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 48),
                     // Stats
                     Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
                         _StatItem(
                           value: '${stats['productCount'] ?? 24}+',
                           label: 'DESIGNS',
                         ),
+                        Container(
+                          height: 40,
+                          width: 1,
+                          color: AppTheme.borderLight,
+                        ),
                         _StatItem(
                           value: '${stats['artisanCount'] ?? 12}+',
                           label: 'ARTISANS',
+                        ),
+                        Container(
+                          height: 40,
+                          width: 1,
+                          color: AppTheme.borderLight,
                         ),
                         _StatItem(
                           value: '${stats['averageRating'] ?? '4.9'}',

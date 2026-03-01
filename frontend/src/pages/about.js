@@ -24,7 +24,7 @@ export default function AboutPage() {
                 </div>
 
                 {/* Hero Section */}
-                <section className="relative h-[70vh] flex items-center justify-center overflow-hidden bg-gray-900">
+                <section className="relative h-[55vh] flex items-center justify-center overflow-hidden bg-gray-900">
                     <div className="absolute inset-0 opacity-40">
                         <img
                             src="https://images.unsplash.com/photo-1544441893-675973e31985?ixlib=rb-1.2.1&auto=format&fit=crop&w=1920&q=80"
@@ -38,7 +38,7 @@ export default function AboutPage() {
                         <motion.p
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
-                            className="text-red-500 font-black text-xs uppercase tracking-[0.5em] mb-6"
+                            className="text-red-500 font-black text-[10px] uppercase tracking-[0.5em] mb-4"
                         >
                             Our Heritage Narrative
                         </motion.p>
@@ -46,7 +46,7 @@ export default function AboutPage() {
                             initial={{ opacity: 0, y: 30 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.2 }}
-                            className="text-6xl md:text-8xl font-black text-white tracking-tighter italic uppercase underline decoration-red-600 decoration-8 underline-offset-[12px]"
+                            className="text-4xl md:text-6xl font-black text-white tracking-tighter italic uppercase underline decoration-red-600 decoration-4 md:decoration-8 underline-offset-[8px] md:underline-offset-[12px]"
                         >
                             The Spirit of Lumban
                         </motion.h1>
@@ -54,8 +54,8 @@ export default function AboutPage() {
                 </section>
 
                 {/* The Genesis Section */}
-                <section className="py-32 container mx-auto px-6 md:px-12">
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
+                <section className="py-20 container mx-auto px-6 md:px-12">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
                         <motion.div
                             initial={{ opacity: 0, x: -50 }}
                             whileInView={{ opacity: 1, x: 0 }}
@@ -77,12 +77,12 @@ export default function AboutPage() {
                             whileInView={{ opacity: 1, x: 0 }}
                             viewport={{ once: true }}
                         >
-                            <Quote className="text-red-600 mb-8" size={64} strokeWidth={3} />
-                            <h2 className="text-4xl md:text-5xl font-black text-gray-900 tracking-tight italic uppercase mb-8 leading-tight">
+                            <Quote className="text-red-600 mb-6" size={48} strokeWidth={3} />
+                            <h2 className="text-3xl md:text-4xl font-black text-gray-900 tracking-tight italic uppercase mb-6 leading-tight">
                                 Born from a <span className="text-red-600">tapestry</span> <br />
                                 of ancestral threads.
                             </h2>
-                            <div className="space-y-6 text-lg text-gray-500 font-medium leading-relaxed italic">
+                            <div className="space-y-4 text-base text-gray-500 font-medium leading-relaxed italic">
                                 <p>
                                     LumBarong was never just an e-commerce platform. It was a promise made in the quiet, sun-drenched workshops of Lumban, Laguna—the barong capital of the Philippines.
                                 </p>
@@ -98,8 +98,8 @@ export default function AboutPage() {
                 </section>
 
                 {/* Values HUD */}
-                <section className="py-32 bg-gray-900 text-white">
-                    <div className="container mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-3 gap-16">
+                <section className="py-20 bg-gray-900 text-white">
+                    <div className="container mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-3 gap-12">
                         <ValueCard
                             icon={<Heart className="text-red-600" size={40} />}
                             title="Empowering Artisans"
@@ -119,16 +119,16 @@ export default function AboutPage() {
                 </section>
 
                 {/* Legacy Section */}
-                <section className="py-32 container mx-auto px-6 md:px-12 text-center">
+                <section className="py-20 container mx-auto px-6 md:px-12 text-center">
                     <div className="max-w-3xl mx-auto">
-                        <div className="inline-flex items-center gap-3 px-6 py-3 bg-red-50 text-red-600 rounded-full text-[10px] font-black uppercase tracking-widest mb-10">
+                        <div className="inline-flex items-center gap-3 px-6 py-2 bg-red-50 text-red-600 rounded-full text-[10px] font-black uppercase tracking-widest mb-8">
                             The LumBarong Vision
                         </div>
-                        <h3 className="text-5xl md:text-6xl font-black text-gray-900 tracking-tighter italic uppercase mb-12">
+                        <h3 className="text-3xl md:text-5xl font-black text-gray-900 tracking-tighter italic uppercase mb-10">
                             To clothe the world in <br />
                             <span className="text-red-600">Filipino Pride.</span>
                         </h3>
-                        <p className="text-xl text-gray-400 font-medium leading-relaxed italic mb-16">
+                        <p className="text-lg text-gray-400 font-medium leading-relaxed italic mb-12">
                             Today, LumBarong stands as more than a marketplace. It is a community of patrons and artisans bound by a shared respect for the threads that weave our history together. When you wear a LumBarong piece, you are not just wearing clothing; you are carrying a story of resilience, craftsmanship, and the eternal beauty of the Philippines.
                         </p>
                     </div>
@@ -164,9 +164,9 @@ export default function AboutPage() {
 function ValueCard({ icon, title, desc }) {
     return (
         <div className="group text-center">
-            <div className="mb-8 flex justify-center group-hover:scale-110 transition-transform">{icon}</div>
-            <h3 className="text-2xl font-black mb-4 tracking-tight uppercase italic">{title}</h3>
-            <p className="text-gray-500 font-medium leading-relaxed italic">{desc}</p>
+            <div className="mb-6 flex justify-center group-hover:scale-110 transition-transform">{icon}</div>
+            <h3 className="text-xl font-black mb-3 tracking-tight uppercase italic">{title}</h3>
+            <p className="text-gray-500 text-sm font-medium leading-relaxed italic">{desc}</p>
         </div>
     );
 }

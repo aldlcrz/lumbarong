@@ -283,11 +283,15 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     final auth = context.watch<AuthProvider>();
     final cart = context.watch<CartProvider>();
     if (!auth.isLoggedIn) {
-      context.go('/');
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) context.go('/');
+      });
       return const SizedBox.shrink();
     }
     if (cart.items.isEmpty && !_orderComplete) {
-      context.go('/home');
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) context.go('/home');
+      });
       return const SizedBox.shrink();
     }
     if (_orderComplete) {

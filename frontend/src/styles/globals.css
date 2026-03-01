@@ -3,11 +3,12 @@
 :root {
   --background: #fdfbf7;
   /* Creamy Piña Fabric color */
-  --foreground: #1a1a1b;
+  --foreground: #111827; /* Matched to mobile's gray-900 */
   --accent-red: #dc2626;
   --accent-gold: #b45309;
   --accent-blue: #1e40af;
   --card-bg: rgba(255, 255, 255, 0.8);
+  --radius-artisan: 1.5rem; /* 24px matched to mobile */
 }
 
 @theme inline {

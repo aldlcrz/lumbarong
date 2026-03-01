@@ -82,7 +82,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
     });
     if (_isSuccess) {
       Future.delayed(const Duration(milliseconds: 1500), () {
-        if (mounted) context.go('/home');
+        if (!mounted) return;
+        final role = context.read<AuthProvider>().user?.role ?? 'customer';
+        if (role == 'seller') {
+          context.go('/seller/dashboard');
+        } else if (role == 'admin') {
+          context.go('/admin/dashboard');
+        } else {
+          context.go('/home');
+        }
       });
     }
   }

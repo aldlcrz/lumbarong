@@ -4,9 +4,10 @@ import Link from 'next/link';
 import api from '@/utils/api';
 import Navbar from '@/components/Navbar';
 import ChatBox from '@/components/ChatBox';
+import Footer from '@/components/Footer';
 import { useAuth } from '@/context/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Star, ShieldCheck, MapPin, Calendar, Package, MessageCircle } from 'lucide-react';
+import { Star, ShieldCheck, MapPin, Calendar, Package, MessageCircle, Phone, Facebook, Instagram, Video, Twitter, ChevronRight, Share2, Info, ShoppingBag } from 'lucide-react';
 
 export default function ShopProfile() {
     const router = useRouter();
@@ -16,7 +17,7 @@ export default function ShopProfile() {
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showChat, setShowChat] = useState(false);
-    const [sortBy, setSortBy] = useState('popular'); // 'popular' | 'latest' | 'price'
+    const [sortBy, setSortBy] = useState('popular');
 
     useEffect(() => {
         if (router.isReady && id) {
@@ -40,7 +41,6 @@ export default function ShopProfile() {
         }
     };
 
-    // Client-side sorting
     const sortedProducts = useMemo(() => {
         const arr = [...products];
         if (sortBy === 'popular') {
@@ -54,194 +54,294 @@ export default function ShopProfile() {
     }, [products, sortBy]);
 
     if (loading) return (
-        <div className="min-h-screen bg-[#f5f5f5] flex items-center justify-center font-bold text-red-600 animate-pulse uppercase tracking-widest text-xs">
-            Summoning Artisan Catalog...
+        <div className="min-h-screen bg-white flex items-center justify-center">
+            <div className="flex flex-col items-center gap-6">
+                <div className="w-8 h-8 border-2 border-gray-100 border-t-gray-900 rounded-full animate-spin"></div>
+                <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-gray-400">Loading Artisan Studio</p>
+            </div>
         </div>
     );
+
     if (!shop) return (
-        <div className="min-h-screen bg-[#f5f5f5] flex items-center justify-center">Shop not found.</div>
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
+            <div className="max-w-md w-full bg-white rounded-3xl p-12 text-center shadow-sm">
+                <div className="w-16 h-16 bg-gray-50 rounded-2xl flex items-center justify-center mx-auto mb-6 text-gray-300">
+                    <ShoppingBag size={32} />
+                </div>
+                <h2 className="text-xl font-bold text-gray-900 mb-2">Shop Not Found</h2>
+                <p className="text-sm text-gray-500 mb-8 leading-relaxed">The artisan shop you're looking for might have moved or is temporarily unavailable.</p>
+                <Link href="/" className="inline-flex items-center justify-center w-full px-8 py-4 bg-gray-900 text-white rounded-2xl font-bold text-sm hover:bg-black transition-all">
+                    Back to Marketplace
+                </Link>
+            </div>
+        </div>
     );
 
     return (
-        <div className="min-h-screen bg-[#f5f5f5]">
+        <div className="min-h-screen bg-[#FAF7F2] font-['Inter']">
             <Navbar />
 
-            <main className="container mx-auto px-4 pt-24 pb-12 max-w-7xl">
-                {/* Shop Header */}
-                <div className="bg-white rounded-sm shadow-sm p-6 mb-6">
-                    <div className="flex flex-col md:flex-row gap-8">
-                        {/* Left: Profile Card */}
-                        <div className="md:w-1/3 bg-gray-900 rounded-lg p-6 text-white relative overflow-hidden group">
-                            <div className="absolute inset-0 bg-red-600/10 group-hover:bg-red-600/20 transition-all"></div>
-                            <div className="relative flex items-center gap-4">
-                                <div className="w-20 h-20 rounded-full border-2 border-white/20 overflow-hidden bg-white/10 shrink-0">
+            <main className="container mx-auto px-4 sm:px-8 pt-32 pb-24 max-w-[1600px]">
+                {/* Breadcrumbs - Easy Navigation */}
+                <nav className="flex items-center gap-2 mb-8 text-[11px] font-bold uppercase tracking-widest text-[#A63A3A]/60">
+                    <Link href="/" className="hover:text-[#A63A3A] transition-colors">Marketplace</Link>
+                    <ChevronRight size={10} />
+                    <span className="text-[#121212] italic">Artisan Profile</span>
+                </nav>
+
+                <div className="grid grid-cols-1 lg:grid-cols-12 xl:grid-cols-14 gap-8 xl:gap-12">
+                    {/* Left Column: Shop Identity (Heritage Card) */}
+                    <div className="lg:col-span-4 xl:col-span-4 space-y-6">
+                        <motion.div
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            className="bg-white rounded-[2.5rem] p-10 shadow-sm border border-[#E0D7CC]/50"
+                        >
+                            <div className="flex flex-col items-center text-center">
+                                <div className="w-24 h-24 rounded-3xl overflow-hidden bg-[#FAF7F2] mb-6 relative border border-[#E0D7CC]/30">
                                     {shop.profileImage ? (
                                         <img src={shop.profileImage} className="w-full h-full object-cover" alt={shop.shopName} />
                                     ) : (
-                                        <div className="w-full h-full flex items-center justify-center text-2xl font-black italic text-red-500">
+                                        <div className="w-full h-full flex items-center justify-center text-3xl font-black text-[#E0D7CC]">
                                             {shop.shopName?.charAt(0) || 'L'}
                                         </div>
                                     )}
                                 </div>
-                                <div className="flex-1">
-                                    <h1 className="text-xl font-bold truncate mb-1">{shop.shopName || shop.name || 'Lumban User'}</h1>
-                                    <p className="text-[10px] text-gray-400 uppercase tracking-tighter mb-3">
-                                        {shop.role === 'seller' ? 'Lumban Verified Partner' : 'Community Member'}
-                                    </p>
-                                    <div className="flex gap-2">
-                                        <button
-                                            onClick={() => {
-                                                if (!currentUser) {
-                                                    router.push('/login?redirect=' + router.asPath);
-                                                    return;
-                                                }
-                                                setShowChat(true);
-                                            }}
-                                            className="px-4 py-1.5 bg-red-600 hover:bg-red-700 text-white text-[10px] font-bold rounded-sm flex items-center gap-1 transition-all"
+
+                                <div className="flex items-center gap-2 mb-2">
+                                    <h1 className="text-2xl font-black text-[#121212] tracking-tight italic uppercase">
+                                        {shop.shopName || shop.name}
+                                    </h1>
+                                    {shop.isVerified && (
+                                        <div className="text-[#D4AF37]" title="Artisan Verified">
+                                            <ShieldCheck size={18} fill="currentColor" className="text-white" />
+                                        </div>
+                                    )}
+                                </div>
+                                <p className="text-[10px] font-bold text-[#A63A3A]/50 uppercase tracking-widest mb-8">
+                                    Lumban, Laguna • Philippines
+                                </p>
+
+                                <div className="grid grid-cols-2 gap-3 w-full mb-8">
+                                    <button
+                                        onClick={() => {
+                                            if (!currentUser) {
+                                                router.push('/login?redirect=' + router.asPath);
+                                                return;
+                                            }
+                                            setShowChat(true);
+                                        }}
+                                        className="py-4 bg-[#121212] hover:bg-black text-white text-[10px] font-black uppercase tracking-widest rounded-2xl transition-all shadow-lg shadow-[#E0D7CC]"
+                                    >
+                                        Message
+                                    </button>
+                                    <button className="py-4 border border-[#E0D7CC] hover:bg-[#FAF7F2] text-[#121212] text-[10px] font-black uppercase tracking-widest rounded-2xl transition-all">
+                                        Follow
+                                    </button>
+                                </div>
+
+                                {/* Social Media Buttons */}
+                                <div className="grid grid-cols-2 gap-3 w-full pt-8 border-t border-[#FAF7F2]">
+                                    {shop.facebook && (
+                                        <a
+                                            href={shop.facebook.startsWith('http') ? shop.facebook : `https://${shop.facebook}`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="flex items-center justify-center gap-2 py-4 bg-[#121212] hover:bg-black text-white text-[10px] font-black uppercase tracking-widest rounded-2xl transition-all shadow-lg shadow-[#E0D7CC]"
                                         >
-                                            <MessageCircle size={12} />
-                                            Chat Now
-                                        </button>
-                                        <button className="px-4 py-1.5 border border-white/20 hover:bg-white/10 text-white text-[10px] font-bold rounded-sm transition-all">
-                                            Follow
-                                        </button>
-                                    </div>
+                                            <Facebook size={16} />
+                                            <span>Facebook</span>
+                                        </a>
+                                    )}
+                                    {shop.instagram && (
+                                        <a
+                                            href={shop.instagram.startsWith('http') ? shop.instagram : `https://instagram.com/${shop.instagram.replace('@', '')}`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="flex items-center justify-center gap-2 py-4 bg-[#121212] hover:bg-black text-white text-[10px] font-black uppercase tracking-widest rounded-2xl transition-all shadow-lg shadow-[#E0D7CC]"
+                                        >
+                                            <Instagram size={16} />
+                                            <span>Instagram</span>
+                                        </a>
+                                    )}
+                                    {shop.tiktok && (
+                                        <a
+                                            href={shop.tiktok.startsWith('http') ? shop.tiktok : `https://tiktok.com/@${shop.tiktok.replace('@', '')}`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="flex items-center justify-center gap-2 py-4 bg-[#121212] hover:bg-black text-white text-[10px] font-black uppercase tracking-widest rounded-2xl transition-all shadow-lg shadow-[#E0D7CC]"
+                                        >
+                                            <Video size={16} />
+                                            <span>TikTok</span>
+                                        </a>
+                                    )}
+                                    {shop.twitter && (
+                                        <a
+                                            href={shop.twitter.startsWith('http') ? shop.twitter : `https://twitter.com/${shop.twitter.replace('@', '')}`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="flex items-center justify-center gap-2 py-4 bg-[#121212] hover:bg-black text-white text-[10px] font-black uppercase tracking-widest rounded-2xl transition-all shadow-lg shadow-[#E0D7CC]"
+                                        >
+                                            <Twitter size={16} />
+                                            <span>Twitter</span>
+                                        </a>
+                                    )}
+                                    <button className="flex items-center justify-center gap-2 py-4 border border-[#E0D7CC] hover:bg-[#FAF7F2] text-[#121212] text-[10px] font-black uppercase tracking-widest rounded-2xl transition-all col-span-2">
+                                        <Share2 size={16} />
+                                        Share Studio
+                                    </button>
                                 </div>
                             </div>
-                        </div>
+                        </motion.div>
 
-                        {/* Right: Stats */}
-                        <div className="flex-1 grid grid-cols-2 lg:grid-cols-3 gap-y-6 gap-x-12 px-2 py-4">
-                            <div className="flex items-start gap-3">
-                                <Package className="text-gray-400" size={18} />
-                                <div>
-                                    <p className="text-[10px] text-gray-500 uppercase font-medium">Products</p>
-                                    <p className="text-red-500 font-bold">{shop.productCount || 0}</p>
-                                </div>
-                            </div>
-                            <div className="flex items-start gap-3">
-                                <Star className="text-gray-400" size={18} />
-                                <div>
-                                    <p className="text-[10px] text-gray-500 uppercase font-medium">Rating</p>
-                                    <p className="text-red-500 font-bold">
-                                        {shop.averageRating}
-                                        <span className="text-gray-400 text-[8px] font-normal ml-1">({shop.totalReviews} Reviews)</span>
-                                    </p>
-                                </div>
-                            </div>
-                            <div className="flex items-start gap-3">
-                                <Calendar className="text-gray-400" size={18} />
-                                <div>
-                                    <p className="text-[10px] text-gray-500 uppercase font-medium">Joined</p>
-                                    <p className="text-red-500 font-bold whitespace-nowrap">
-                                        {shop.createdAt ? (() => {
-                                            const diff = Date.now() - new Date(shop.createdAt).getTime();
-                                            const months = Math.floor(diff / (1000 * 60 * 60 * 24 * 30.44));
-                                            if (months < 1) return 'Just Joined';
-                                            if (months < 12) return `${months} Months Ago`;
-                                            return `${Math.floor(months / 12)} Years Ago`;
-                                        })() : '24 Months Ago'}
-                                    </p>
-                                </div>
-                            </div>
-                            {shop.role === 'seller' && (
-                                <div className="flex items-start gap-3">
-                                    <ShieldCheck className="text-green-600" size={18} />
-                                    <div>
-                                        <p className="text-[10px] text-gray-500 uppercase font-medium">Verified</p>
-                                        <p className="text-red-500 font-bold">{shop.isVerified ? 'Artisan Certified' : 'Verification Pending'}</p>
-                                    </div>
-                                </div>
-                            )}
-                            <div className="flex items-start gap-3 col-span-2">
-                                <MapPin className="text-gray-400" size={18} />
-                                <div>
-                                    <p className="text-[10px] text-gray-500 uppercase font-medium">Location</p>
-                                    <p className="text-gray-700 font-medium">Lumban, Laguna, Philippines</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {/* About Section */}
-                {shop.shopDescription && (
-                    <div className="bg-white rounded-sm shadow-sm p-8 mb-6">
-                        <h2 className="text-sm font-bold uppercase tracking-widest text-gray-900 border-b border-gray-100 pb-4 mb-4">About the Artisan</h2>
-                        <p className="text-sm text-gray-600 leading-relaxed max-w-4xl whitespace-pre-wrap">{shop.shopDescription}</p>
-                    </div>
-                )}
-
-                {/* Products Grid */}
-                <div>
-                    <div className="flex items-center justify-between mb-6">
-                        <h2 className="text-lg font-bold text-gray-900">
-                            All Products <span className="text-sm font-normal text-gray-400">({products.length})</span>
-                        </h2>
-                        <div className="flex gap-4 text-xs font-medium text-gray-500">
-                            {['popular', 'latest', 'price'].map(sort => (
-                                <button
-                                    key={sort}
-                                    onClick={() => setSortBy(sort)}
-                                    className={`pb-1 cursor-pointer transition-colors capitalize ${sortBy === sort ? 'text-red-500 border-b-2 border-red-500' : 'hover:text-red-500'}`}
-                                >
-                                    {sort === 'popular' ? 'Most Popular' : sort === 'latest' ? 'Latest Items' : 'Price Range'}
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-                        {sortedProducts.map(product => (
-                            <Link href={`/products/${product.id}`} key={product.id}>
-                                <motion.div
-                                    whileHover={{ y: -5 }}
-                                    className="bg-white rounded-sm shadow-sm overflow-hidden cursor-pointer border border-transparent hover:border-red-500 transition-all group"
-                                >
-                                    <div className="aspect-[3/4] overflow-hidden bg-gray-50">
-                                        <img
-                                            src={product.images?.[0]?.url || product.images?.[0] || 'https://via.placeholder.com/300x400?text=Lumban+Barong'}
-                                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                                            alt={product.name}
-                                        />
-                                    </div>
-                                    <div className="p-3">
-                                        <h3 className="text-[13px] text-gray-700 line-clamp-2 h-10 mb-2 leading-tight group-hover:text-red-500 transition-colors">
-                                            {product.name}
-                                        </h3>
-                                        <div className="flex items-center justify-between mt-auto">
-                                            <span className="text-red-500 text-sm font-bold">₱{parseFloat(product.price).toLocaleString()}</span>
-                                            {sortBy === 'popular' && product.ratings?.length > 0 && (
-                                                <span className="text-[10px] text-gray-400 flex items-center gap-0.5">
-                                                    <Star size={9} className="text-amber-400 fill-amber-400" />
-                                                    {product.ratings.length}
-                                                </span>
-                                            )}
-                                            {sortBy === 'latest' && (
-                                                <span className="text-[10px] text-gray-400">
-                                                    {new Date(product.createdAt).toLocaleDateString('en-PH', { month: 'short', day: 'numeric' })}
-                                                </span>
-                                            )}
-                                            {sortBy === 'price' && (
-                                                <span className="text-[10px] text-green-500 font-bold">Low ↑</span>
-                                            )}
+                        <div className="bg-white rounded-[2.5rem] p-8 shadow-sm border border-[#E0D7CC]/50">
+                            <h3 className="text-[10px] font-black text-[#A63A3A]/40 uppercase tracking-widest mb-6 px-2">Contact Details</h3>
+                            <div className="space-y-4">
+                                {shop.phone && (
+                                    <div className="flex items-center gap-4 p-4 rounded-2xl bg-[#FAF7F2] border border-transparent hover:border-[#E0D7CC]/30 transition-all group">
+                                        <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-[#E0D7CC] group-hover:text-[#A63A3A] shadow-sm transition-colors">
+                                            <Phone size={16} />
+                                        </div>
+                                        <div>
+                                            <p className="text-[9px] font-black text-[#A63A3A]/50 uppercase tracking-widest leading-none mb-1">Business Line</p>
+                                            <p className="text-sm font-bold text-[#121212]">{shop.phone}</p>
                                         </div>
                                     </div>
-                                </motion.div>
-                            </Link>
-                        ))}
+                                )}
+                                <div className="flex items-center gap-4 p-4 rounded-2xl bg-[#FAF7F2] border border-transparent hover:border-[#E0D7CC]/30 transition-all group">
+                                    <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-[#E0D7CC] group-hover:text-[#A63A3A] shadow-sm transition-colors">
+                                        <MapPin size={16} />
+                                    </div>
+                                    <div>
+                                        <p className="text-[9px] font-black text-[#A63A3A]/50 uppercase tracking-widest leading-none mb-1">Showroom</p>
+                                        <p className="text-sm font-bold text-[#121212]">Lumban, Laguna</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
-                    {products.length === 0 && (
-                        <div className="bg-white rounded-sm shadow-sm p-12 text-center">
-                            <Package className="mx-auto text-gray-200 mb-4" size={64} />
-                            <p className="text-gray-400 font-medium italic">This artisan hasn't listed any collections yet.</p>
+                    {/* Right Column: Narrative & Catalog */}
+                    <div className="lg:col-span-8 xl:col-span-10 space-y-8">
+                        {/* Stats & Narrative Header */}
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="bg-white rounded-[2.5rem] p-10 md:p-12 shadow-sm border border-[#E0D7CC]/50"
+                        >
+                            <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 mb-12 border-b border-[#FAF7F2] pb-12">
+                                <div className="text-center md:text-left">
+                                    <p className="text-[10px] font-black text-[#A63A3A]/50 uppercase tracking-widest mb-2">Pieces</p>
+                                    <p className="text-3xl font-black text-[#121212] italic tracking-tighter uppercase">{shop.productCount || 0}</p>
+                                </div>
+                                <div className="text-center md:text-left">
+                                    <p className="text-[10px] font-black text-[#A63A3A]/50 uppercase tracking-widest mb-2">Rating</p>
+                                    <div className="flex items-center justify-center md:justify-start gap-1">
+                                        <p className="text-3xl font-black text-[#121212] italic tracking-tighter uppercase">{shop.averageRating || '4.9'}</p>
+                                        <Star size={14} className="text-[#D4AF37] fill-[#D4AF37]" />
+                                    </div>
+                                </div>
+                                <div className="text-center md:text-left">
+                                    <p className="text-[10px] font-black text-[#A63A3A]/50 uppercase tracking-widest mb-2">Heritage</p>
+                                    <p className="text-3xl font-black text-[#121212] italic tracking-tighter uppercase whitespace-nowrap">
+                                        {shop.createdAt ? (() => {
+                                            const diff = Date.now() - new Date(shop.createdAt).getTime();
+                                            const years = (diff / (1000 * 60 * 60 * 24 * 365.25)).toFixed(1);
+                                            return years < 1 ? 'New' : `${years}Y`;
+                                        })() : '2.4Y'}
+                                    </p>
+                                </div>
+                                <div className="text-center md:text-left">
+                                    <p className="text-[10px] font-black text-[#A63A3A]/50 uppercase tracking-widest mb-2">Category</p>
+                                    <p className="text-xl font-black text-[#121212] italic tracking-tighter uppercase underline decoration-[#A63A3A]/20 decoration-2 underline-offset-4">Barong</p>
+                                </div>
+                            </div>
+
+                            <div className="max-w-3xl">
+                                <div className="flex items-center gap-3 mb-6">
+                                    <Info size={14} className="text-[#E0D7CC]" />
+                                    <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-[#121212]">Artisan Narrative</h2>
+                                </div>
+                                <p className="text-lg text-[#121212]/70 leading-relaxed font-medium italic">
+                                    "{shop.shopDescription || "Dedicated to preserving the embroidery traditions of Lumban, Laguna. Each handcrafted piece reflects a legacy of meticulous craftsmanship and timeless Filipino elegance."}"
+                                </p>
+                            </div>
+                        </motion.div>
+
+                        {/* Catalog Section */}
+                        <div className="pt-4">
+                            <div className="flex flex-col md:flex-row items-center justify-between gap-6 mb-10">
+                                <h2 className="text-2xl font-black text-[#121212] tracking-tight italic uppercase">
+                                    Collection <span className="text-[#E0D7CC] ml-1">({products.length})</span>
+                                </h2>
+
+                                <div className="flex gap-1 bg-[#E0D7CC]/20 p-1.5 rounded-2xl">
+                                    {['popular', 'latest', 'price'].map(sort => (
+                                        <button
+                                            key={sort}
+                                            onClick={() => setSortBy(sort)}
+                                            className={`px-5 py-2 rounded-xl font-bold uppercase tracking-widest text-[9px] transition-all ${sortBy === sort ? 'bg-white text-[#121212] shadow-sm' : 'text-[#A63A3A]/60 hover:text-[#121212]'}`}
+                                        >
+                                            {sort === 'popular' ? 'Popular' : sort === 'latest' ? 'Recent' : 'Price'}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-6 xl:gap-8">
+                                <AnimatePresence mode="popLayout">
+                                    {sortedProducts.map((product, idx) => (
+                                        <motion.div
+                                            key={product.id}
+                                            layout
+                                            initial={{ opacity: 0, y: 10 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            transition={{ delay: idx * 0.05 }}
+                                        >
+                                            <Link href={`/products/${product.id}`}>
+                                                <div className="group bg-white rounded-[2rem] overflow-hidden border border-[#E0D7CC]/30 hover:border-[#E0D7CC] hover:shadow-xl hover:shadow-[#E0D7CC]/20 transition-all">
+                                                    <div className="aspect-[4/5] overflow-hidden bg-[#FAF7F2] relative">
+                                                        <img
+                                                            src={product.images?.[0]?.url || product.images?.[0] || 'https://via.placeholder.com/400x500?text=Lumban+Barong'}
+                                                            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                                                            alt={product.name}
+                                                        />
+                                                        <div className="absolute top-4 left-4">
+                                                            <div className="px-3 py-1 bg-white/90 backdrop-blur shadow-sm rounded-full text-[9px] font-black uppercase tracking-widest text-[#121212]">
+                                                                {product.category?.name || (typeof product.category === 'string' ? product.category : 'Handmade')}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div className="p-6">
+                                                        <h3 className="text-sm font-bold text-[#121212] line-clamp-2 h-10 leading-tight mb-4 group-hover:text-[#A63A3A] transition-colors uppercase tracking-tight">
+                                                            {product.name}
+                                                        </h3>
+                                                        <div className="flex items-center justify-between pt-4 border-t border-[#FAF7F2]">
+                                                            <p className="text-lg font-black text-[#121212] tracking-tighter">₱{parseFloat(product.price).toLocaleString()}</p>
+                                                            <div className="flex items-center gap-1 opacity-40">
+                                                                <Star size={10} className="fill-[#121212]" />
+                                                                <span className="text-[10px] font-bold">{product.ratings?.length || 0}</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </Link>
+                                        </motion.div>
+                                    ))}
+                                </AnimatePresence>
+                            </div>
+
+                            {products.length === 0 && (
+                                <div className="py-20 text-center bg-white rounded-[2.5rem] border border-[#E0D7CC]/30 border-dashed">
+                                    <ShoppingBag className="mx-auto text-[#E0D7CC]/20 mb-4" size={48} />
+                                    <p className="text-sm font-bold text-[#A63A3A]/40 italic">No pieces available currently.</p>
+                                </div>
+                            )}
                         </div>
-                    )}
+                    </div>
                 </div>
             </main>
 
-            {/* ChatBox */}
             <AnimatePresence>
                 {showChat && (
                     <ChatBox
@@ -250,6 +350,8 @@ export default function ShopProfile() {
                     />
                 )}
             </AnimatePresence>
+
+            <Footer />
         </div>
     );
 }

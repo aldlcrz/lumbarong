@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import api from '@/utils/api';
 import { useAuth } from '@/context/AuthContext';
-import Navbar from '@/components/Navbar';
+import SellerLayout from '@/components/SellerLayout';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { io } from 'socket.io-client';
@@ -50,9 +50,8 @@ export default function SellerDashboard() {
     if (authLoading || !user) return null;
 
     return (
-        <div className="min-h-screen bg-[#fdfbf7]">
-            <Navbar />
-            <div className="p-6 md:p-8 md:px-12">
+        <SellerLayout>
+            <div className="">
 
 
                 <header className="mb-8 flex justify-between items-end">
@@ -176,33 +175,6 @@ export default function SellerDashboard() {
                     </div>
                 </div>
 
-                <div className="mt-12">
-                    <h2 className="text-2xl font-black mb-8 text-gray-900 flex items-center gap-2">
-                        <span className="w-2 h-8 bg-red-600 rounded-full"></span>
-                        Artisan Workshop Actions
-                    </h2>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <ActionCard
-                            href="/seller/add-product"
-                            label="Post New Design"
-                            description="Showcase a new handcrafted masterpiece."
-                            icon={<PlusCircle size={32} />}
-                            disabled={!user.isVerified}
-                        />
-                        <ActionCard
-                            href="/seller/products"
-                            label="Manage Catalog"
-                            description="Update stock levels and heritage details."
-                            icon={<Store size={32} />}
-                        />
-                        <ActionCard
-                            href="/seller/orders"
-                            label="View Orders"
-                            description="Track and fulfillment your active orders."
-                            icon={<ShoppingBag size={32} />}
-                        />
-                    </div>
-                </div>
 
                 {/* Sales Funnel Section */}
                 <div className="mt-12">
@@ -264,7 +236,7 @@ export default function SellerDashboard() {
                     </section>
                 </div>
             </div>
-        </div>
+        </SellerLayout>
     );
 }
 
