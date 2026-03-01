@@ -1,5 +1,5 @@
 const { Order, OrderItem, ReturnRequest } = require('../models/Order');
-const { Product } = require('../models/Product');
+const { Product, ProductRating, ProductImage } = require('../models/Product');
 const User = require('../models/User');
 const sequelize = require('../config/database');
 const { sendNotification } = require('../utils/notificationHelper');
@@ -63,8 +63,16 @@ exports.createOrder = async (req, res) => {
         await t.commit();
         await sendNotification(currentUserId, 'Your order has been placed successfully. Mabuhay!', 'order');
 
-        if (req.app.get('io')) {
-            req.app.get('io').emit('dashboard_update');
+        const io = req.app.get('io');
+        if (io) {
+            io.emit('dashboard_update');
+            io.emit(`order_update:${currentUserId}`);
+            // Notify each seller
+            for (let entry of lockedProducts) {
+                if (entry.product.sellerId) {
+                    io.emit(`order_update:${entry.product.sellerId}`);
+                }
+            }
         }
 
         res.status(201).json(order);
@@ -100,7 +108,6 @@ exports.getOrders = async (req, res) => {
             where.id = { [Op.in]: ordersWithSellerProducts };
         }
 
-        const { ProductImage } = require('../models/Product');
 
         const orders = await Order.findAll({
             where,
@@ -140,7 +147,7 @@ exports.getOrderById = async (req, res) => {
                 {
                     model: OrderItem,
                     as: 'items',
-                    include: [{ model: Product, as: 'product', attributes: ['name', 'price', 'images', 'id'] }]
+                    include: [{ model: Product, as: 'product', attributes: ['name', 'price', 'images', 'id', 'sellerId'] }]
                 },
                 { model: ReturnRequest, as: 'returnRequest' },
                 {
@@ -172,7 +179,11 @@ exports.updateOrderStatus = async (req, res) => {
     try {
         const { status } = req.body;
         const order = await Order.findByPk(req.params.id, {
-            include: [{ model: OrderItem, as: 'items' }]
+            include: [{
+                model: OrderItem,
+                as: 'items',
+                include: [{ model: Product, as: 'product', attributes: ['id', 'sellerId'] }]
+            }]
         });
         if (!order) return res.status(404).json({ message: 'Order not found' });
 
@@ -201,8 +212,16 @@ exports.updateOrderStatus = async (req, res) => {
         await t.commit();
 
         await sendNotification(order.customerId, `Your order status has been updated to: ${status}`, 'order');
-        if (req.app.get('io')) {
-            req.app.get('io').emit('dashboard_update');
+        const io = req.app.get('io');
+        if (io) {
+            io.emit('dashboard_update');
+            io.emit(`order_update:${order.customerId}`);
+            // Also notify all involved sellers
+            for (let item of order.items) {
+                if (item.product && item.product.sellerId) {
+                    io.emit(`order_update:${item.product.sellerId}`);
+                }
+            }
         }
         res.json(order);
     } catch (error) {

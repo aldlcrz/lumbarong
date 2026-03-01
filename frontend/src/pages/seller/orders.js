@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/router';
 import { useAuth } from '@/context/AuthContext';
 import SellerLayout from '@/components/SellerLayout';
 import api from '@/utils/api';
+import { getSocket } from '@/utils/socket';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Package,
@@ -330,10 +331,34 @@ export default function SellerOrders() {
     const [auditOrder, setAuditOrder] = useState(null);
     const [viewFeedback, setViewFeedback] = useState(null);
     const [viewOrder, setViewOrder] = useState(null);
+    const [isLive, setIsLive] = useState(false);
+    const [newOrderAlert, setNewOrderAlert] = useState(false);
+    const alertTimerRef = useRef(null);
 
     useEffect(() => {
         if (user) {
             fetchOrders();
+
+            const socket = getSocket();
+            const eventKey = `order_update:${user.id}`;
+
+            const handleOrderUpdate = () => {
+                fetchOrders();
+                setNewOrderAlert(true);
+                clearTimeout(alertTimerRef.current);
+                alertTimerRef.current = setTimeout(() => setNewOrderAlert(false), 5000);
+            };
+
+            socket.on(eventKey, handleOrderUpdate);
+            socket.on('connect', () => setIsLive(true));
+            socket.on('disconnect', () => setIsLive(false));
+
+            if (socket.connected) setIsLive(true);
+
+            return () => {
+                socket.off(eventKey, handleOrderUpdate);
+                clearTimeout(alertTimerRef.current);
+            };
         }
     }, [user]);
 
@@ -509,10 +534,37 @@ export default function SellerOrders() {
                     <span className="text-sm font-black text-gray-600 group-hover:text-red-600 uppercase tracking-widest transition-colors">Back</span>
                 </button>
 
+                {/* New Order Flash Alert */}
+                <AnimatePresence>
+                    {newOrderAlert && (
+                        <motion.div
+                            initial={{ opacity: 0, y: -20, scale: 0.95 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            exit={{ opacity: 0, y: -20, scale: 0.95 }}
+                            className="mb-6 flex items-center gap-4 px-8 py-5 bg-red-600 text-white rounded-3xl shadow-2xl shadow-red-200"
+                        >
+                            <div className="w-3 h-3 bg-white rounded-full animate-ping flex-shrink-0" />
+                            <div>
+                                <p className="text-[10px] font-black uppercase tracking-widest opacity-80">Incoming Order</p>
+                                <p className="text-sm font-bold">A new order has just arrived in your registry!</p>
+                            </div>
+                            <button onClick={() => setNewOrderAlert(false)} className="ml-auto p-1 rounded-full hover:bg-white/20 transition-all">
+                                <X size={16} />
+                            </button>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+
                 <header className="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-8">
                     <div>
                         <p className="text-red-600 font-black text-[10px] uppercase tracking-[0.4em] mb-3">Artisan Ledger</p>
-                        <h1 className="text-5xl font-black text-gray-900 tracking-tighter italic uppercase">Order Registry</h1>
+                        <div className="flex items-center gap-4">
+                            <h1 className="text-5xl font-black text-gray-900 tracking-tighter italic uppercase">Order Registry</h1>
+                            <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest transition-all ${isLive ? 'bg-green-50 text-green-600 border border-green-100' : 'bg-gray-50 text-gray-400 border border-gray-100'}`}>
+                                <div className={`w-2 h-2 rounded-full ${isLive ? 'bg-green-500 animate-pulse' : 'bg-gray-300'}`} />
+                                {isLive ? 'Live' : 'Connecting...'}
+                            </div>
+                        </div>
                         <p className="text-gray-500 mt-2 font-medium italic">Managing your handcrafted order and logistics.</p>
                     </div>
 

@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/router';
 import Footer from '@/components/Footer';
 import { useAuth } from '@/context/AuthContext';
 import Navbar from '@/components/Navbar';
 import api from '@/utils/api';
+import { getSocket } from '@/utils/socket';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Package,
@@ -371,10 +372,30 @@ export default function MyOrders() {
     const [showPaymentModal, setShowPaymentModal] = useState(null);
     const [showReviewModal, setShowReviewModal] = useState(null);
     const [showReturnModal, setShowReturnModal] = useState(null);
+    const [isLive, setIsLive] = useState(false);
+    const flashTimerRef = useRef(null);
 
     useEffect(() => {
         if (user) {
             fetchOrders();
+
+            const socket = getSocket();
+            const eventKey = `order_update:${user.id}`;
+
+            const handleOrderUpdate = () => {
+                fetchOrders();
+            };
+
+            socket.on(eventKey, handleOrderUpdate);
+            socket.on('connect', () => setIsLive(true));
+            socket.on('disconnect', () => setIsLive(false));
+
+            if (socket.connected) setIsLive(true);
+
+            return () => {
+                socket.off(eventKey, handleOrderUpdate);
+                clearTimeout(flashTimerRef.current);
+            };
         }
     }, [user]);
 
@@ -487,7 +508,13 @@ export default function MyOrders() {
 
                 <header className="mb-12">
                     <p className="text-red-600 font-black text-[10px] uppercase tracking-[0.3em] mb-3">Customer Registry</p>
-                    <h1 className="text-5xl font-black text-gray-900 tracking-tighter italic uppercase">My Heritage Collection</h1>
+                    <div className="flex items-center gap-4 mb-2">
+                        <h1 className="text-5xl font-black text-gray-900 tracking-tighter italic uppercase">My Heritage Collection</h1>
+                        <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest transition-all ${isLive ? 'bg-green-50 text-green-600 border border-green-100' : 'bg-gray-50 text-gray-400 border border-gray-100'}`}>
+                            <div className={`w-2 h-2 rounded-full ${isLive ? 'bg-green-500 animate-pulse' : 'bg-gray-300'}`} />
+                            {isLive ? 'Live' : 'Connecting...'}
+                        </div>
+                    </div>
                     <p className="text-gray-500 mt-2 font-medium italic">Track your Ordered Barongs and Filipino designs.</p>
                 </header>
 
