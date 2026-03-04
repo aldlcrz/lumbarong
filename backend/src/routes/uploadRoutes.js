@@ -39,8 +39,9 @@ router.post('/', auth(['seller', 'admin', 'customer']), upload.single('image'), 
 
             fs.writeFileSync(filePath, req.file.buffer);
 
-            // Return local URL
-            const localUrl = `http://localhost:5000/uploads/${fileName}`;
+            // Return local URL - Use the host from the request so it works for mobile/web
+            const host = req.get('host');
+            const localUrl = `http://${host}/uploads/${fileName}`;
             res.json({ url: localUrl });
         }
     } catch (error) {

@@ -34,7 +34,8 @@ export default function SellerProfile() {
         tiktok: '',
         twitter: '',
         gcashNumber: '',
-        profileImage: ''
+        profileImage: '',
+        address: ''
     });
     const [uploading, setUploading] = useState(false);
 
@@ -49,7 +50,8 @@ export default function SellerProfile() {
                 tiktok: user.tiktok || '',
                 twitter: user.twitter || '',
                 gcashNumber: user.gcashNumber || '',
-                profileImage: user.profileImage || ''
+                profileImage: user.profileImage || '',
+                address: user.address || ''
             });
         }
     }, [user]);
@@ -175,6 +177,16 @@ export default function SellerProfile() {
                                                 className="w-full bg-gray-50 border-none rounded-2xl px-6 py-4 font-bold text-gray-900 focus:ring-2 focus:ring-red-600/20"
                                             />
                                         </div>
+                                    </div>
+                                    <div className="space-y-3">
+                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">Showroom / Shop Address</label>
+                                        <textarea
+                                            rows={2}
+                                            value={formData.address}
+                                            onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                                            className="w-full bg-gray-50 border-none rounded-2xl px-6 py-4 font-medium text-gray-700 focus:ring-2 focus:ring-red-600/20 resize-none italic"
+                                            placeholder="E.g., 123 Heritage St., Lumban, Laguna"
+                                        />
                                     </div>
                                 </div>
 

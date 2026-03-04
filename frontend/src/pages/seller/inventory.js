@@ -224,7 +224,9 @@ export default function InventoryPage() {
                                         {/* info */}
                                         <div className="flex-1 min-w-0">
                                             <div className="flex items-center gap-2 mb-1">
-                                                <span className="text-[8px] font-black uppercase tracking-widest text-gray-400">{product.category?.name || (typeof product.category === 'string' ? product.category : 'Barong')}</span>
+                                                <span className="text-[8px] font-black uppercase tracking-widest text-gray-400">
+                                                    {product.category?.name || categories.find(c => c.id === (product.CategoryId || (typeof product.category === 'object' ? product.category.id : product.category)))?.name || 'Barong'}
+                                                </span>
                                             </div>
                                             <h3 className="text-xl font-black text-gray-900 tracking-tight">{product.name}</h3>
                                             <p className="text-xs text-gray-400 font-medium italic mb-3">SKU: {product.id?.toString().slice(-8).toUpperCase() || 'N/A'}</p>

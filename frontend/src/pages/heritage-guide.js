@@ -26,7 +26,7 @@ export default function HeritageGuide() {
                 <section className="bg-gray-900 py-32 text-center relative overflow-hidden">
                     <div className="absolute inset-0 opacity-20">
                         <img
-                            src="https://images.unsplash.com/photo-1544441893-675973e31985?auto=format&fit=crop&q=80&w=2000"
+                            src="https://thumbs.dreamstime.com/b/barongs-12687297.jpg?w=992"
                             className="w-full h-full object-cover"
                             alt="Textile background"
                         />
@@ -60,7 +60,7 @@ export default function HeritageGuide() {
                             subtitle="FIBER EXTRACTION"
                             description="Every masterpiece begins in the fields. Our artisans use Piña (pineapple fiber) or Jusi (silk-based fabric). The pineapple leaves are hand-scraped to extract the fine 'Liniwan' fibers—the highest grade of silk-like thread known for its translucent luster."
                             icon={<Sun size={40} className="text-amber-500" />}
-                            image="https://images.unsplash.com/photo-1544441893-675973e31985?auto=format&fit=crop&q=80&w=800"
+                            image="https://thumbs.dreamstime.com/b/barongs-12687297.jpg?w=992"
                         />
 
                         <StepSection
@@ -69,7 +69,7 @@ export default function HeritageGuide() {
                             subtitle="HAND EMBROIDERY"
                             description="This is where the magic happens. Using the 'Calado' technique, artisans painstakingly pull out threads from the fabric to create intricate lattices, then embroider back into the empty spaces. A single chest piece can take 2 to 4 weeks of continuous hand-stitching."
                             icon={<Flower2 size={40} className="text-red-600" />}
-                            image="https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&q=80&w=800"
+                            image="https://thumbs.dreamstime.com/b/barong-tagalog-pink-corsage-wedding-7620577.jpg?w=768"
                             reversed
                         />
 
@@ -79,7 +79,7 @@ export default function HeritageGuide() {
                             subtitle="TAILORING & ASSEMBLY"
                             description="Unlike mass-produced garments, a heritage Barong is cut following the unique flow of the embroidery. Our master tailors ensure that the patterns align perfectly across the seams, preserving the visual integrity of the artisan's vision."
                             icon={<Scissors size={40} className="text-gray-900" />}
-                            image="https://images.unsplash.com/photo-1523381210434-271e8be1f52b?auto=format&fit=crop&q=80&w=800"
+                            image="https://thumbs.dreamstime.com/b/formal-shirt-national-dress-barong-tagalog-philippines-96813235.jpg?w=992"
                         />
 
                     </div>

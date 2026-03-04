@@ -27,7 +27,14 @@ exports.createOrder = async (req, res) => {
             if (!product || product.stock < item.quantity) {
                 throw new Error(`Insufficient stock for ${product ? product.name : 'Unknown Product'}`);
             }
-            lockedProducts.push({ product, quantity: parseInt(item.quantity), price: parseFloat(item.price) });
+            lockedProducts.push({
+                product,
+                quantity: parseInt(item.quantity),
+                price: parseFloat(item.price),
+                color: item.color,
+                design: item.design,
+                size: item.size
+            });
         }
 
         const currentUserId = req.user.id || req.user.userId;
@@ -49,7 +56,10 @@ exports.createOrder = async (req, res) => {
                 orderId: order.id,
                 productId: entry.product.id,
                 quantity: entry.quantity,
-                price: entry.price
+                price: entry.price,
+                color: entry.color,
+                design: entry.design,
+                size: entry.size
             }, { transaction: t });
 
             // Deduct stock using literal SQL (already guaranteed by lock, but following user's hint for atomic decrement)
@@ -70,7 +80,7 @@ exports.createOrder = async (req, res) => {
             // Notify each seller
             for (let entry of lockedProducts) {
                 if (entry.product.sellerId) {
-                    io.emit(`order_update:${entry.product.sellerId}`);
+                    io.emit(`order_update:${entry.product.sellerId}`, { type: 'new_order' });
                 }
             }
         }
@@ -120,7 +130,7 @@ exports.getOrders = async (req, res) => {
                         model: Product,
                         as: 'product',
                         attributes: ['name', 'price', 'id'],
-                        include: [{ model: ProductImage, as: 'images' }]
+                        include: [{ model: ProductImage, as: 'images', attributes: ['url'] }]
                     }]
                 },
                 {
@@ -147,7 +157,12 @@ exports.getOrderById = async (req, res) => {
                 {
                     model: OrderItem,
                     as: 'items',
-                    include: [{ model: Product, as: 'product', attributes: ['name', 'price', 'images', 'id', 'sellerId'] }]
+                    include: [{
+                        model: Product,
+                        as: 'product',
+                        attributes: ['name', 'price', 'id', 'sellerId'],
+                        include: [{ model: ProductImage, as: 'images', attributes: ['url'] }]
+                    }]
                 },
                 { model: ReturnRequest, as: 'returnRequest' },
                 {
@@ -170,7 +185,12 @@ exports.getOrderById = async (req, res) => {
 
         res.json(order);
     } catch (error) {
-        res.status(500).json({ message: 'Server error', error: error.message });
+        console.error(`[OrderController.getOrderById] FAILED for ID: ${req.params.id}. Error:`, error);
+        res.status(500).json({
+            message: 'Server error in getOrderById',
+            error: error.message,
+            stack: error.stack
+        });
     }
 };
 
@@ -219,7 +239,7 @@ exports.updateOrderStatus = async (req, res) => {
             // Also notify all involved sellers
             for (let item of order.items) {
                 if (item.product && item.product.sellerId) {
-                    io.emit(`order_update:${item.product.sellerId}`);
+                    io.emit(`order_update:${item.product.sellerId}`, { type: 'status_update' });
                 }
             }
         }
@@ -324,7 +344,11 @@ exports.submitReview = async (req, res) => {
     try {
         const { ratings } = req.body; // Array of { productId, rating, comment, images }
         const order = await Order.findByPk(req.params.id, {
-            include: [{ model: OrderItem, as: 'items' }],
+            include: [{
+                model: OrderItem,
+                as: 'items',
+                include: [{ model: Product, as: 'product' }]
+            }],
             transaction: t
         });
 
@@ -344,7 +368,6 @@ exports.submitReview = async (req, res) => {
             return res.status(400).json({ message: 'Order must be delivered before rating' });
         }
 
-        const { ProductRating } = require('../models/Product');
 
         // Create ratings for each specified product
         for (const itemReview of ratings) {
@@ -390,8 +413,8 @@ exports.submitReview = async (req, res) => {
         res.json({ message: 'Review(s) submitted successfully', order });
     } catch (error) {
         if (t) await t.rollback();
-        console.error('Submit Review Error:', error);
-        res.status(500).json({ message: 'Server error', error: error.message });
+        console.error(`[OrderController.submitReview] ERROR (Order ID: ${req.params.id}):`, error);
+        res.status(500).json({ message: 'Server error', error: error.message, stack: process.env.NODE_ENV === 'development' ? error.stack : undefined });
     }
 };
 

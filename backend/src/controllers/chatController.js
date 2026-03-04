@@ -19,10 +19,15 @@ exports.sendMessage = async (req, res) => {
             content
         });
 
-        // Populate sender info
         const populatedMessage = await Message.findByPk(message.id, {
             include: [{ model: User, as: 'sender', attributes: ['id', 'name', 'profileImage'] }]
         });
+
+        const io = req.app.get('io');
+        if (io) {
+            io.emit(`new_message:${receiverId}`, populatedMessage);
+            io.emit(`new_message:${senderId}`, populatedMessage);
+        }
 
         res.status(201).json(populatedMessage);
     } catch (error) {

@@ -7,7 +7,7 @@ import { useAuth } from '@/context/AuthContext';
 import Navbar from '@/components/Navbar';
 import ChatBox from '@/components/ChatBox';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ShoppingCart, Star, ShieldCheck, Truck, ArrowLeft, X, ZoomIn, ChevronLeft, ChevronRight, Edit3, LayoutDashboard, MessageSquare, Heart, AlertCircle } from 'lucide-react';
+import { ShoppingCart, Star, ShieldCheck, Truck, ArrowLeft, X, ZoomIn, ChevronLeft, ChevronRight, Edit3, LayoutDashboard, MessageSquare, Heart, AlertCircle, Check, CheckCircle2 } from 'lucide-react';
 import { io } from 'socket.io-client';
 
 const socket = io(process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:5000');
@@ -21,10 +21,12 @@ export default function ProductDetails() {
     const [quantity, setQuantity] = useState(1);
     const [activeImg, setActiveImg] = useState(0);
     const [isZoomed, setIsZoomed] = useState(false);
-    const [selectedColor, setSelectedColor] = useState('Classic White');
-    const [selectedSize, setSelectedSize] = useState('M');
+    const [selectedColor, setSelectedColor] = useState('');
+    const [selectedDesign, setSelectedDesign] = useState('');
+    const [selectedSize, setSelectedSize] = useState('');
     const [showChat, setShowChat] = useState(false);
     const [isAdding, setIsAdding] = useState(false);
+    const [addedToCart, setAddedToCart] = useState(false);
     const [isWishlisted, setIsWishlisted] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
     const [editForm, setEditForm] = useState({
@@ -68,16 +70,33 @@ export default function ProductDetails() {
     const fetchProductData = async () => {
         try {
             const res = await api.get(`/products/${id}`);
-            setProduct(res.data);
+            const productData = res.data;
+            setProduct(productData);
             setEditForm({
-                category: res.data.category,
-                embroideryStyle: res.data.embroideryStyle || 'Traditional Calado',
-                fabric: res.data.fabric || 'Piña-Seda Silk',
-                description: res.data.description
+                category: productData.category,
+                embroideryStyle: productData.embroideryStyle || 'Traditional Calado',
+                fabric: productData.fabric || 'Piña-Seda Silk',
+                description: productData.description
             });
 
+            // Set default selections
+            if (productData.availableColors?.length > 0) setSelectedColor(productData.availableColors[0]);
+            if (productData.availableDesigns?.length > 0) {
+                const defaultDesign = productData.availableDesigns[0];
+                setSelectedDesign(defaultDesign);
+                // Set default image to match design if available
+                const matchingImgIdx = productData.images?.findIndex(img => img.designName === defaultDesign);
+                if (matchingImgIdx !== -1 && matchingImgIdx !== undefined) {
+                    setActiveImg(matchingImgIdx);
+                }
+            }
+            if (productData.availableSizes?.length > 0) {
+                const firstSize = productData.availableSizes[0].size || productData.availableSizes[0];
+                setSelectedSize(firstSize);
+            }
+
             // Fetch related products from same category
-            const categoryId = res.data.CategoryId || res.data.category?.id || res.data.category;
+            const categoryId = productData.CategoryId || productData.category?.id || productData.category;
             const relatedRes = await api.get(`/products?categoryId=${categoryId}`);
             setRelatedProducts(relatedRes.data.filter(p => p.id !== id).slice(0, 4));
 
@@ -135,8 +154,10 @@ export default function ProductDetails() {
     if (loading || authLoading) return <div className="flex justify-center items-center min-h-screen text-red-600 font-bold uppercase tracking-widest text-xs">Authenticating Artisan Registry...</div>;
     if (!product) return <div className="min-h-screen flex items-center justify-center">Product not found.</div>;
 
-    const colors = ['Classic White', 'Ivory Cream', 'Midnight Black', 'Imperial Gold', 'Deep Emerald'];
-    const sizes = ['S', 'M', 'L', 'XL', 'XXL', '3XL', 'Custom'];
+    // Dynamic options from seller's product data
+    const colors = Array.isArray(product.availableColors) ? product.availableColors : (typeof product.availableColors === 'string' ? JSON.parse(product.availableColors || '[]') : []);
+    const sizes = Array.isArray(product.availableSizes) ? product.availableSizes.map(s => s.size || s) : (typeof product.availableSizes === 'string' ? JSON.parse(product.availableSizes || '[]').map(s => s.size || s) : []);
+    const designs = Array.isArray(product.availableDesigns) ? product.availableDesigns : (typeof product.availableDesigns === 'string' ? JSON.parse(product.availableDesigns || '[]') : []);
 
     return (
         <div className="min-h-screen bg-[#f5f5f5]">
@@ -223,7 +244,7 @@ export default function ProductDetails() {
                                     </div>
                                 </div>
                                 <div className="border-r border-gray-200 pr-4">
-                                    <span className="text-gray-900 underline font-medium">{product.ratingsCount || 0}</span>
+                                    <span className="text-gray-900 underline font-medium">{product.totalRatings || 0}</span>
                                     <span className="text-gray-500 ml-1">Ratings</span>
                                 </div>
                                 <div>
@@ -233,18 +254,18 @@ export default function ProductDetails() {
                             </div>
                         </div>
 
-                        {/* Shopee Price Block */}
-                        <div className="bg-[#fafafa] p-4 rounded-sm flex items-center gap-4">
+                        {/* Price Block */}
+                        <div className="pt-2">
                             {isBuyer ? (
-                                <>
+                                <div className="flex items-center gap-4">
                                     <span className="text-sm text-gray-400 line-through">₱{(product.price * 1.5).toLocaleString()}</span>
-                                    <span className="text-2xl font-black text-red-500">
+                                    <span className="text-3xl font-medium text-gray-900">
                                         ₱{product.price.toLocaleString()}
                                     </span>
                                     <span className="bg-red-500 text-white text-[10px] px-1 rounded-sm font-bold uppercase">50% OFF</span>
-                                </>
+                                </div>
                             ) : (
-                                <span className="text-3xl font-medium text-gray-900">
+                                <span className="text-3xl font-medium text-gray-900 font-sans">
                                     ₱{product.price.toLocaleString()}
                                 </span>
                             )}
@@ -277,65 +298,98 @@ export default function ProductDetails() {
                                 </div>
                             )}
 
-                            {/* Options: Color */}
-                            <div className="flex items-start gap-12">
-                                <span className="text-sm text-gray-500 w-24 pt-2">Color</span>
-                                <div className="flex flex-wrap gap-2">
-                                    {colors.map(color => (
-                                        <button
-                                            key={color}
-                                            onClick={() => setSelectedColor(color)}
-                                            className={`px-4 py-2 text-xs border rounded-sm transition-all ${selectedColor === color ? 'border-red-500 text-red-500 relative ring-1 ring-red-500' : 'border-gray-200 hover:border-red-500 hover:text-red-500'}`}
-                                        >
-                                            {color}
-                                            {selectedColor === color && (
-                                                <div className="absolute right-0 bottom-0 w-3 h-3 bg-red-500 text-white flex items-center justify-center">
-                                                    <span className="text-[8px]">✓</span>
-                                                </div>
-                                            )}
-                                        </button>
-                                    ))}
+                            {/* Options: Color — dynamic from seller's product data */}
+                            {colors.length > 0 && (
+                                <div className="flex items-start gap-12">
+                                    <span className="text-sm text-gray-400 w-24 pt-1">Color</span>
+                                    <div className="flex flex-wrap gap-2 text-xs">
+                                        {colors.map(color => (
+                                            <button
+                                                key={color}
+                                                onClick={() => setSelectedColor(color)}
+                                                className={`px-6 py-2 min-w-[120px] border rounded-full transition-all relative bg-white font-bold italic ${selectedColor === color ? 'border-red-500 text-red-500 bg-red-50/20' : 'border-gray-200 text-gray-400 hover:border-red-500 hover:text-red-500'}`}
+                                            >
+                                                {color}
+                                                {selectedColor === color && (
+                                                    <div className="absolute right-1 top-1/2 -translate-y-1/2 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center">
+                                                        <Check size={10} strokeWidth={4} />
+                                                    </div>
+                                                )}
+                                            </button>
+                                        ))}
+                                    </div>
                                 </div>
-                            </div>
+                            )}
 
-                            {/* Options: Size */}
-                            <div className="flex items-start gap-12">
-                                <span className="text-sm text-gray-500 w-24 pt-2">Size</span>
-                                <div className="flex flex-wrap gap-2">
-                                    {sizes.map(size => (
-                                        <button
-                                            key={size}
-                                            onClick={() => setSelectedSize(size)}
-                                            className={`px-4 py-2 text-xs border rounded-sm transition-all ${selectedSize === size ? 'border-red-500 text-red-500 relative ring-1 ring-red-500' : 'border-gray-200 hover:border-red-500 hover:text-red-500'}`}
-                                        >
-                                            {size}
-                                            {selectedSize === size && (
-                                                <div className="absolute right-0 bottom-0 w-3 h-3 bg-red-500 text-white flex items-center justify-center">
-                                                    <span className="text-[8px]">✓</span>
-                                                </div>
-                                            )}
-                                        </button>
-                                    ))}
+                            {/* Options: Design — clickable buttons like categories */}
+                            {designs.length > 0 && (
+                                <div className="flex items-start gap-12">
+                                    <span className="text-sm text-gray-400 w-24 pt-1">Design</span>
+                                    <div className="flex flex-wrap gap-2 text-xs">
+                                        {designs.map(design => (
+                                            <button
+                                                key={design}
+                                                onClick={() => {
+                                                    setSelectedDesign(design);
+                                                    // Swap image if matching design found
+                                                    const matchingImgIdx = product.images?.findIndex(img => img.designName === design);
+                                                    if (matchingImgIdx !== -1) {
+                                                        setActiveImg(matchingImgIdx);
+                                                    }
+                                                }}
+                                                className={`px-6 py-2 border rounded-full transition-all relative bg-white font-bold italic uppercase tracking-tighter ${selectedDesign === design ? 'border-red-500 text-red-500 bg-red-50/20' : 'border-gray-200 text-gray-400 hover:border-red-500 hover:text-red-500'}`}
+                                            >
+                                                {design}
+                                                {selectedDesign === design && (
+                                                    <div className="absolute right-1 top-1/2 -translate-y-1/2 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center">
+                                                        <Check size={10} strokeWidth={4} />
+                                                    </div>
+                                                )}
+                                            </button>
+                                        ))}
+                                    </div>
                                 </div>
-                            </div>
+                            )}
 
-                            {/* Quantity - Hidden for Admins */}
+                            {/* Options: Size — dynamic from ProductSize table */}
+                            {sizes.length > 0 && (
+                                <div className="flex items-start gap-12">
+                                    <span className="text-sm text-gray-400 w-24 pt-1">Size</span>
+                                    <div className="flex flex-wrap gap-2 text-xs">
+                                        {sizes.map(size => (
+                                            <button
+                                                key={size}
+                                                onClick={() => setSelectedSize(size)}
+                                                className={`w-12 h-9 flex items-center justify-center border rounded-full transition-all relative bg-white font-black italic ${selectedSize === size ? 'border-red-500 text-red-500 bg-red-50/20' : 'border-gray-200 text-gray-400 hover:border-red-500 hover:text-red-500'}`}
+                                            >
+                                                {size}
+                                                {selectedSize === size && (
+                                                    <div className="absolute -right-1 -top-1 w-4 h-4 bg-red-500 text-white rounded-full flex items-center justify-center">
+                                                        <Check size={8} strokeWidth={4} />
+                                                    </div>
+                                                )}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
                             {!isAdmin && (
                                 <div className="flex items-center gap-12">
-                                    <span className="text-sm text-gray-500 w-24">Quantity</span>
+                                    <span className="text-sm text-gray-400 w-24">Quantity</span>
                                     <div className="flex items-center gap-4">
-                                        <div className="flex items-center border border-gray-200 rounded-sm overflow-hidden h-8 bg-white">
+                                        <div className="flex items-center border border-gray-200 rounded-sm overflow-hidden h-8">
                                             <button
                                                 onClick={() => setQuantity(q => Math.max(1, q - 1))}
-                                                className="w-8 h-full flex items-center justify-center hover:bg-gray-50 transition-colors border-r text-gray-500"
+                                                className="w-10 h-full flex items-center justify-center hover:bg-gray-50 transition-colors border-r text-gray-400"
                                             >-</button>
-                                            <span className="w-12 h-full flex items-center justify-center text-sm">{quantity}</span>
+                                            <span className="w-12 h-full flex items-center justify-center text-sm font-medium border-x-0">{quantity}</span>
                                             <button
                                                 onClick={() => setQuantity(q => q + 1)}
-                                                className="w-8 h-full flex items-center justify-center hover:bg-gray-50 transition-colors border-l text-gray-500"
+                                                className="w-10 h-full flex items-center justify-center hover:bg-gray-50 transition-colors border-l text-gray-400"
                                             >+</button>
                                         </div>
-                                        <span className="text-xs text-gray-400">{product.stock} pieces available</span>
+                                        <span className="text-[12px] text-gray-400">{product.stock} pieces available</span>
                                     </div>
                                 </div>
                             )}
@@ -362,35 +416,56 @@ export default function ProductDetails() {
                             </div>
                         ) : (
                             <>
-                                <div className="flex items-center gap-4 pt-4">
+                                <div className="flex flex-wrap items-center gap-3 pt-6">
+                                    {/* Buy Now → goes directly to payment/order page */}
                                     <button
-                                        onClick={async () => {
-                                            setIsAdding(true);
-                                            await addToCart(product, quantity);
-                                            setIsAdding(false);
+                                        onClick={() => {
+                                            const query = new URLSearchParams({
+                                                id: product.id,
+                                                qty: quantity,
+                                                color: selectedColor,
+                                                design: selectedDesign,
+                                                size: selectedSize
+                                            }).toString();
+                                            router.push(`/buy-now?${query}`);
                                         }}
                                         disabled={isAdding}
-                                        className="flex-1 lg:flex-none lg:w-[180px] h-12 bg-red-50 border-2 border-red-500 text-red-500 rounded-sm font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-red-100 transition-all active:scale-[0.98] disabled:opacity-50"
+                                        className="flex-1 lg:flex-none lg:min-w-[180px] h-12 bg-black text-white rounded-sm font-black text-[11px] uppercase tracking-[0.2em] hover:bg-red-600 transition-all shadow-xl shadow-gray-200"
                                     >
-                                        {isAdding ? (
-                                            <div className="w-5 h-5 border-2 border-red-500/20 border-t-red-500 rounded-full animate-spin"></div>
+                                        Buy Now
+                                    </button>
+
+                                    {/* Add to Cart → adds to cart with selected options, then user proceeds to checkout */}
+                                    <button
+                                        onClick={() => {
+                                            setIsAdding(true);
+                                            addToCart(product, quantity, {
+                                                color: selectedColor,
+                                                design: selectedDesign,
+                                                size: selectedSize
+                                            });
+                                            setAddedToCart(true);
+                                            setIsAdding(false);
+                                            setTimeout(() => setAddedToCart(false), 2000);
+                                        }}
+                                        disabled={isAdding}
+                                        className={`flex items-center justify-center gap-2 flex-1 lg:flex-none lg:min-w-[180px] h-12 rounded-sm font-black text-[11px] uppercase tracking-[0.2em] transition-all border ${addedToCart
+                                            ? 'bg-green-50 border-green-500 text-green-600'
+                                            : 'bg-white border-gray-200 text-gray-700 hover:border-red-500 hover:text-red-500'
+                                            }`}
+                                    >
+                                        {addedToCart ? (
+                                            <><CheckCircle2 size={14} /> Added!</>
                                         ) : (
-                                            <>
-                                                <ShoppingCart size={20} />
-                                                Add To Cart
-                                            </>
+                                            <><ShoppingCart size={14} /> Add to Cart</>
                                         )}
                                     </button>
+
                                     <button
-                                        onClick={async () => {
-                                            setIsAdding(true);
-                                            await addToCart(product, quantity);
-                                            router.push('/checkout');
-                                        }}
-                                        disabled={isAdding}
-                                        className="flex-1 lg:flex-none lg:w-[140px] h-12 bg-red-500 text-white rounded-sm font-black text-xs uppercase tracking-widest hover:bg-red-600 transition-all active:scale-[0.98] shadow-xl shadow-red-100 disabled:opacity-50"
+                                        onClick={() => router.back()}
+                                        className="flex-1 lg:flex-none lg:min-w-[120px] h-12 bg-white border border-gray-200 text-gray-500 rounded-sm font-black text-[11px] uppercase tracking-[0.2em] hover:border-black hover:text-black transition-all"
                                     >
-                                        {isAdding ? 'Processing...' : 'Buy Now'}
+                                        Go Back
                                     </button>
                                 </div>
                                 {/* Lumbarong Guarantee - Only for Buyers */}
@@ -664,15 +739,24 @@ export default function ProductDetails() {
                                                 <p className="text-sm text-gray-800 leading-relaxed mb-4">{rate.review}</p>
 
                                                 {/* Review Images */}
-                                                {rate.images?.length > 0 && (
-                                                    <div className="flex gap-2 mb-4">
-                                                        {rate.images.map((img, i) => (
-                                                            <div key={i} className="w-20 h-20 rounded-sm overflow-hidden border border-gray-100 cursor-pointer hover:border-red-500 transition-all">
-                                                                <img src={img} className="w-full h-full object-cover" />
+                                                {(() => {
+                                                    const reviewImages = Array.isArray(rate.images)
+                                                        ? rate.images
+                                                        : (typeof rate.images === 'string' ? JSON.parse(rate.images) : []);
+
+                                                    if (reviewImages?.length > 0) {
+                                                        return (
+                                                            <div className="flex gap-2 mb-4">
+                                                                {reviewImages.map((img, i) => (
+                                                                    <div key={i} className="w-20 h-20 rounded-sm overflow-hidden border border-gray-100 cursor-pointer hover:border-red-500 transition-all">
+                                                                        <img src={img} className="w-full h-full object-cover" />
+                                                                    </div>
+                                                                ))}
                                                             </div>
-                                                        ))}
-                                                    </div>
-                                                )}
+                                                        );
+                                                    }
+                                                    return null;
+                                                })()}
 
                                                 <div className="flex items-center gap-4">
                                                     <button className="flex items-center gap-1.5 text-gray-400 hover:text-red-500 transition-colors">

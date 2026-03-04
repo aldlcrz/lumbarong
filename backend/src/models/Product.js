@@ -40,6 +40,18 @@ const Product = sequelize.define('Product', {
         type: DataTypes.STRING,
         defaultValue: 'Piña-Seda Silk'
     },
+    shippingDays: {
+        type: DataTypes.INTEGER,
+        defaultValue: 7
+    },
+    availableColors: {
+        type: DataTypes.JSON,
+        defaultValue: []
+    },
+    availableDesigns: {
+        type: DataTypes.JSON,
+        defaultValue: []
+    },
     sellerId: {
         type: DataTypes.UUID,
         allowNull: false,
@@ -71,6 +83,10 @@ const ProductImage = sequelize.define('ProductImage', {
     url: {
         type: DataTypes.STRING,
         allowNull: false
+    },
+    designName: {
+        type: DataTypes.STRING,
+        allowNull: true
     },
     ProductId: {
         type: DataTypes.UUID,

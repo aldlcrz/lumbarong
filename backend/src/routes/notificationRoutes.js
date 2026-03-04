@@ -4,6 +4,7 @@ const notificationController = require('../controllers/notificationController');
 const auth = require('../middleware/authMiddleware');
 
 router.get('/', auth(), notificationController.getNotifications);
+router.get('/unread-count', auth(), notificationController.getUnreadCount);
 router.patch('/mark-read', auth(), notificationController.markNotificationsRead);
 
 module.exports = router;

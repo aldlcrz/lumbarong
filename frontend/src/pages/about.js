@@ -27,7 +27,7 @@ export default function AboutPage() {
                 <section className="relative h-[55vh] flex items-center justify-center overflow-hidden bg-gray-900">
                     <div className="absolute inset-0 opacity-40">
                         <img
-                            src="https://images.unsplash.com/photo-1544441893-675973e31985?ixlib=rb-1.2.1&auto=format&fit=crop&w=1920&q=80"
+                            src="https://www.needlenthread.com/wp-content/uploads/2015/01/pina-cloth-embroidered-01.jpg"
                             className="w-full h-full object-cover"
                             alt="Artisan Background"
                         />
@@ -64,7 +64,7 @@ export default function AboutPage() {
                         >
                             <div className="aspect-[4/5] rounded-[4rem] bg-gray-100 overflow-hidden shadow-2xl z-20 relative">
                                 <img
-                                    src="https://images.unsplash.com/photo-1544441893-675973e31985?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80"
+                                    src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEiWiSS2cXm1Qjfo6dB8IhRgF2mmweKwE__qvZFXdeTTp49Cr4AzBMHtPFVFXjl1l3YaBt9ldTXWlmOfd4s3PkAb1zcfshExo20QD6ZIZG_l_FU3sQyz8EuODuAEPSYEb0QRO38R5cAkIKyL/s1600/IMG_3143.JPG"
                                     className="w-full h-full object-cover"
                                     alt="Artisan at work"
                                 />
@@ -136,10 +136,10 @@ export default function AboutPage() {
                     {/* Vision Image Grid */}
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8">
                         {[
-                            "https://images.unsplash.com/photo-1544441893-675973e31985?ixlib=rb-1.2.1&auto=format&fit=crop&w=400&q=80",
-                            "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?ixlib=rb-1.2.1&auto=format&fit=crop&w=400&q=80",
-                            "https://images.unsplash.com/photo-1523381210434-271e8be1f52b?ixlib=rb-1.2.1&auto=format&fit=crop&w=400&q=80",
-                            "https://images.unsplash.com/photo-1544441893-675973e31985?ixlib=rb-1.2.1&auto=format&fit=crop&w=400&q=80"
+                            "https://mb.com.ph/uploads/imported_images/mb-mkt-neo-prod-1-uploads-2/media/Skillful_hand_makes_beautiful_embroidery_54e5bab4ab/Skillful_hand_makes_beautiful_embroidery_54e5bab4ab.jpg",
+                            "https://i0.wp.com/kapampangantraveller.com/wp-content/uploads/2023/10/img_7966.jpg?w=768&ssl=1",
+                            "https://traveleronfoot.wordpress.com/wp-content/uploads/2015/09/lumban-embroidery-pina-fabric.jpg?w=584",
+                            "https://www.heritagebarong.com/cdn/shop/files/About_Us_Banner_Image_01.jpg?v=1613550691&width=1800"
                         ].map((url, i) => (
                             <motion.div
                                 key={i}

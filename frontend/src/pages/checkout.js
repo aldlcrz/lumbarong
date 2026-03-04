@@ -93,7 +93,10 @@ export default function Checkout() {
                 items: cartItems.map(item => ({
                     product: item.product.id,
                     quantity: item.quantity,
-                    price: item.product.price
+                    price: item.product.price,
+                    color: item.options?.color,
+                    design: item.options?.design,
+                    size: item.options?.size
                 })),
                 totalAmount: cartTotal,
                 paymentMethod: formData.paymentMethod,
@@ -276,42 +279,33 @@ export default function Checkout() {
 
                 <div className="space-y-6">
                     {/* ADDRESS SECTION */}
-                    <div className="bg-white rounded-[2.5rem] p-8 border border-gray-100 shadow-sm relative group overflow-hidden">
-                        <div className="absolute top-0 left-0 w-1.5 h-full bg-red-600 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <div className="bg-white rounded-[3rem] p-10 border border-gray-100 shadow-sm relative group overflow-hidden">
+                        <div className="absolute top-8 left-0 w-1.5 h-16 bg-red-600 rounded-r-full" />
                         <div className="flex items-start justify-between gap-4">
-                            <div className="flex items-start gap-4 flex-1">
-                                <MapPin className="text-red-600 mt-1" size={20} />
+                            <div className="flex items-start gap-5 flex-1 pl-2">
+                                <div className="mt-1 w-10 h-10 rounded-full bg-red-50 flex items-center justify-center shrink-0">
+                                    <MapPin className="text-red-600" size={20} />
+                                </div>
                                 <div className="space-y-4 w-full">
                                     <div className="flex items-center justify-between">
-                                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">Shipping Destination</p>
-                                        {addresses.length > 0 && (
-                                            <button
-                                                onClick={() => setShowAddressSelector(true)}
-                                                className="text-[10px] font-black text-red-600 uppercase tracking-widest hover:underline"
-                                            >
-                                                Change Address
-                                            </button>
-                                        )}
+                                        <p className="text-[11px] font-black text-gray-400 uppercase tracking-widest pl-1">Shipping Destination</p>
+                                        <button
+                                            onClick={() => setShowAddressSelector(true)}
+                                            className="text-[11px] font-black text-red-600 uppercase tracking-widest hover:underline"
+                                        >
+                                            Change Address
+                                        </button>
                                     </div>
                                     <div className="space-y-4">
                                         <div>
-                                            <textarea
-                                                placeholder="Enter your artisan delivery address..."
-                                                className="w-full text-xs font-bold text-gray-900 bg-transparent outline-none border-none resize-none no-scrollbar h-auto min-h-[48px]"
-                                                value={formData.address}
-                                                onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                                                required
-                                            />
-                                            <div className="relative mt-2">
-                                                <Smartphone className="absolute left-0 top-1/2 -translate-y-1/2 text-red-600/30" size={14} />
-                                                <input
-                                                    type="tel"
-                                                    placeholder="Contact Number..."
-                                                    className="w-full pl-6 text-xs font-bold text-gray-900 bg-transparent outline-none"
-                                                    value={formData.phone}
-                                                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                                                    required
-                                                />
+                                            <p className="text-sm font-bold text-gray-900 leading-relaxed italic">
+                                                {formData.address || "Add delivery heritage destination..."}
+                                            </p>
+                                            <div className="flex items-center gap-3 mt-4">
+                                                <div className="w-8 h-8 rounded-full bg-red-50 flex items-center justify-center shrink-0">
+                                                    <Smartphone className="text-red-400" size={14} />
+                                                </div>
+                                                <p className="text-sm font-black text-gray-900 tracking-widest italic">{formData.phone || "0000 000 0000"}</p>
                                             </div>
                                         </div>
                                     </div>
@@ -320,107 +314,47 @@ export default function Checkout() {
                         </div>
                     </div>
 
-                    {/* Address Selector Modal */}
-                    <AnimatePresence>
-                        {showAddressSelector && (
-                            <div className="fixed inset-0 z-[110] flex items-center justify-center p-6">
-                                <motion.div
-                                    initial={{ opacity: 0 }}
-                                    animate={{ opacity: 1 }}
-                                    exit={{ opacity: 0 }}
-                                    className="fixed inset-0 bg-black/40 backdrop-blur-sm"
-                                    onClick={() => setShowAddressSelector(false)}
-                                />
-                                <motion.div
-                                    initial={{ opacity: 0, scale: 0.95, y: 20 }}
-                                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                                    exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                                    className="bg-white rounded-[3rem] w-full max-w-lg overflow-hidden relative shadow-2xl z-20"
-                                >
-                                    <div className="p-8 lg:p-10">
-                                        <h2 className="text-2xl font-black text-gray-900 tracking-tighter italic uppercase mb-8 pr-12">Select Shipping Address</h2>
-                                        <button
-                                            onClick={() => setShowAddressSelector(false)}
-                                            className="absolute top-8 right-8 p-2 text-gray-400 hover:text-red-600 transition-colors"
-                                        >
-                                            <Plus className="rotate-45" size={24} />
-                                        </button>
-
-                                        <div className="space-y-4 max-h-[60vh] overflow-y-auto no-scrollbar pr-2">
-                                            {addresses.map(addr => (
-                                                <div
-                                                    key={addr.id}
-                                                    onClick={() => {
-                                                        setFormData({
-                                                            ...formData,
-                                                            phone: addr.phoneNumber,
-                                                            address: `${addr.fullName} | ${addr.street}, ${addr.barangay}, ${addr.city}, ${addr.province} ${addr.postalCode}`
-                                                        });
-                                                        setSelectedAddressId(addr.id);
-                                                        setShowAddressSelector(false);
-                                                    }}
-                                                    className={`p-6 rounded-2xl border-2 cursor-pointer transition-all ${selectedAddressId === addr.id ? 'border-red-600 bg-red-50/20' : 'border-gray-50 hover:border-gray-200 bg-gray-50/50'}`}
-                                                >
-                                                    <div className="flex justify-between items-start mb-3">
-                                                        <span className="text-[8px] font-black uppercase tracking-[0.2em] px-2 py-1 bg-white rounded-md text-gray-400 border border-gray-100">{addr.label}</span>
-                                                        {addr.isDefault && <span className="text-[8px] font-black uppercase tracking-widest text-red-600">Default</span>}
-                                                    </div>
-                                                    <p className="font-black text-gray-900 text-sm italic mb-1 uppercase tracking-tight">{addr.fullName}</p>
-                                                    <p className="text-[10px] text-gray-500 font-medium italic line-clamp-2">
-                                                        {addr.street}, {addr.barangay}, {addr.city}, {addr.province} {addr.postalCode}
-                                                    </p>
-                                                    <p className="mt-3 text-[10px] font-bold text-gray-400">{addr.phoneNumber}</p>
-                                                </div>
-                                            ))}
-                                        </div>
-
-                                        <Link href="/profile" className="block mt-6 text-center text-[10px] font-black text-red-600 uppercase tracking-widest hover:underline decoration-2 underline-offset-4">
-                                            + Manage Address Book
-                                        </Link>
-                                    </div>
-                                </motion.div>
-                            </div>
-                        )}
-                    </AnimatePresence>
-
                     {/* PRODUCT SECTION */}
                     {cartItems.map(item => (
-                        <div key={item.product.id} className="bg-white rounded-[2.5rem] p-8 border border-gray-100 shadow-sm">
-                            <div className="flex items-center gap-3 mb-6">
-                                <div className="bg-red-600 text-white px-2 py-0.5 rounded-md text-[8px] font-black uppercase">Master Artisan</div>
-                                <p className="text-[10px] font-black text-gray-900 uppercase tracking-widest">{item.product.seller?.shopName || 'LumBarong'}</p>
+                        <div key={item.product.id} className="bg-white rounded-[3.5rem] p-10 border border-gray-100 shadow-sm relative group">
+                            <div className="flex items-center gap-3 mb-8">
+                                <div className="bg-red-600 text-white px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider">Master Artisan</div>
+                                <p className="text-[11px] font-black text-gray-900 uppercase tracking-widest">{item.product.seller?.shopName || 'LumBarong'}</p>
                                 <div className="flex items-center gap-1 ml-auto">
                                     <Star size={10} className="text-amber-500 fill-amber-500" />
                                     <span className="text-[10px] font-black text-gray-900">4.8</span>
-                                    <span className="text-[10px] font-bold text-gray-300">(218)</span>
                                 </div>
                             </div>
 
-                            <div className="flex gap-6">
-                                <div className="w-24 h-32 rounded-3xl overflow-hidden bg-gray-50 border border-gray-100 shrink-0 shadow-inner">
+                            <div className="flex gap-8">
+                                <div className="w-32 h-40 rounded-[2.5rem] overflow-hidden bg-gray-50 border border-gray-100 shrink-0 shadow-inner">
                                     <img src={item.product.images?.[0]?.url || item.product.images?.[0] || null} className="w-full h-full object-cover" />
                                 </div>
                                 <div className="flex flex-col justify-between py-1 flex-1">
                                     <div>
-                                        <h3 className="font-black text-gray-900 uppercase text-sm tracking-tight mb-1">{item.product.name}</h3>
-                                        <p className="text-[10px] font-bold text-gray-400 italic mb-2">Heritage Design | Handcrafted</p>
-                                        <p className="text-lg font-black text-gray-900 tracking-tighter">₱{item.product.price.toLocaleString()}</p>
+                                        <h3 className="font-black text-gray-900 uppercase text-lg tracking-tight mb-3 italic">{item.product.name}</h3>
+                                        <div className="flex flex-wrap gap-2 mb-4">
+                                            {item.options?.color && <span className="text-[9px] bg-red-50 text-red-600 px-3 py-1.5 rounded-full font-black uppercase border border-red-100 italic tracking-widest">Color: {item.options.color}</span>}
+                                            {item.options?.size && <span className="text-[9px] bg-gray-50 text-gray-400 px-3 py-1.5 rounded-full font-black uppercase border border-gray-100 italic tracking-widest">Size: {item.options.size}</span>}
+                                            {item.options?.design && <span className="text-[9px] bg-gray-50 text-gray-500 px-3 py-1.5 rounded-full font-black uppercase border border-gray-100 italic tracking-widest">Design: {item.options.design}</span>}
+                                        </div>
+                                        <p className="text-2xl font-black text-gray-900 tracking-tighter">₱{item.product.price.toLocaleString()}</p>
                                     </div>
-                                    <div className="flex items-center justify-end gap-4">
-                                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Qty: {item.quantity}</span>
+                                    <div className="flex items-center justify-end">
+                                        <span className="text-[11px] font-black text-gray-300 uppercase underline decoration-gray-200 underline-offset-4 italic">Qty: {item.quantity}</span>
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="mt-8 pt-8 border-t border-gray-50 flex items-center justify-between">
-                                <div className="flex items-center gap-3">
-                                    <Truck size={18} className="text-gray-300" />
+                            <div className="mt-10 pt-10 border-t border-gray-50 flex items-center justify-between">
+                                <div className="flex items-center gap-4">
+                                    <Truck size={22} className="text-gray-200" />
                                     <div>
-                                        <p className="text-[10px] font-black text-gray-900 uppercase tracking-tight">Standard Delivery</p>
-                                        <p className="text-[8px] font-bold text-green-600 italic">Free Shipping on your first commission</p>
+                                        <p className="text-[11px] font-black text-gray-900 uppercase tracking-tight">Standard Delivery</p>
+                                        <p className="text-[9px] font-bold text-green-600 italic">Free Shipping applied</p>
                                     </div>
                                 </div>
-                                <div className="text-right font-black text-gray-900 text-xs">
+                                <div className="text-right font-black text-gray-900 text-sm">
                                     ₱0
                                 </div>
                             </div>
@@ -429,18 +363,18 @@ export default function Checkout() {
 
 
                     {/* SUMMARY SECTION */}
-                    <div className="bg-white rounded-[2.5rem] p-8 border border-gray-100 shadow-sm space-y-4">
-                        <div className="flex justify-between items-center text-xs font-bold text-gray-400 uppercase tracking-widest">
+                    <div className="bg-white rounded-[3rem] p-10 border border-gray-100 shadow-sm space-y-6">
+                        <div className="flex justify-between items-center text-[11px] font-black text-gray-400 uppercase tracking-[0.2em]">
                             <span>Merchandise Subtotal</span>
-                            <span className="text-gray-900">₱{cartTotal.toLocaleString()}</span>
+                            <span className="text-gray-900 text-sm tracking-tight">₱{cartTotal.toLocaleString()}</span>
                         </div>
-                        <div className="flex justify-between items-center text-xs font-bold text-gray-400 uppercase tracking-widest">
+                        <div className="flex justify-between items-center text-[11px] font-black text-gray-400 uppercase tracking-[0.2em]">
                             <span>Shipping Registry Fee</span>
-                            <span className="text-green-600 italic">Free</span>
+                            <span className="text-green-500 font-black italic tracking-widest">FREE</span>
                         </div>
-                        <div className="pt-4 flex justify-between items-center">
-                            <span className="text-sm font-black text-gray-900 uppercase tracking-tighter">Vat inclusive</span>
-                            <span className="text-2xl font-black text-red-600 tracking-tighter italic">₱{cartTotal.toLocaleString()}</span>
+                        <div className="pt-6 border-t border-gray-50 flex justify-between items-center">
+                            <span className="text-sm font-black text-gray-900 uppercase tracking-widest italic">Vat inclusive</span>
+                            <span className="text-3xl font-black text-red-600 tracking-tighter italic">₱{cartTotal.toLocaleString()}</span>
                         </div>
                     </div>
 

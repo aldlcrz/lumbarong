@@ -7,7 +7,7 @@ import ChatBox from '@/components/ChatBox';
 import Footer from '@/components/Footer';
 import { useAuth } from '@/context/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Star, ShieldCheck, MapPin, Calendar, Package, MessageCircle, Phone, Facebook, Instagram, Video, Twitter, ChevronRight, Share2, Info, ShoppingBag } from 'lucide-react';
+import { Star, ShieldCheck, MapPin, Calendar, Package, MessageCircle, Phone, Smartphone, Facebook, Instagram, Video, Twitter, ChevronRight, Share2, Info, ShoppingBag } from 'lucide-react';
 
 export default function ShopProfile() {
     const router = useRouter();
@@ -119,7 +119,7 @@ export default function ShopProfile() {
                                     )}
                                 </div>
                                 <p className="text-[10px] font-bold text-[#A63A3A]/50 uppercase tracking-widest mb-8">
-                                    Lumban, Laguna • Philippines
+                                    {shop.address || 'Lumban, Laguna • Philippines'}
                                 </p>
 
                                 <div className="grid grid-cols-2 gap-3 w-full mb-8">
@@ -205,6 +205,17 @@ export default function ShopProfile() {
                                         <div>
                                             <p className="text-[9px] font-black text-[#A63A3A]/50 uppercase tracking-widest leading-none mb-1">Business Line</p>
                                             <p className="text-sm font-bold text-[#121212]">{shop.phone}</p>
+                                        </div>
+                                    </div>
+                                )}
+                                {shop.gcashNumber && (
+                                    <div className="flex items-center gap-4 p-4 rounded-2xl bg-blue-50/30 border border-transparent hover:border-blue-100 transition-all group">
+                                        <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-blue-400 group-hover:text-blue-600 shadow-sm transition-colors">
+                                            <Smartphone size={16} />
+                                        </div>
+                                        <div>
+                                            <p className="text-[9px] font-black text-blue-600/50 uppercase tracking-widest leading-none mb-1">GCash Master</p>
+                                            <p className="text-sm font-bold text-[#121212]">{shop.gcashNumber}</p>
                                         </div>
                                     </div>
                                 )}

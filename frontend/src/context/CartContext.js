@@ -16,29 +16,35 @@ export function CartProvider({ children }) {
         sessionStorage.setItem('cart', JSON.stringify(cartItems));
     }, [cartItems]);
 
-    const addToCart = (product, quantity = 1) => {
+    const addToCart = (product, quantity = 1, options = {}) => {
         setCartItems(prev => {
-            // Use product.id (Sequelize UUID), not product._id (Mongoose ObjectId)
-            const existing = prev.find(item => item.product.id === product.id);
+            const existing = prev.find(item =>
+                item.product.id === product.id &&
+                JSON.stringify(item.options) === JSON.stringify(options)
+            );
             if (existing) {
                 return prev.map(item =>
-                    item.product.id === product.id
+                    (item.product.id === product.id && JSON.stringify(item.options) === JSON.stringify(options))
                         ? { ...item, quantity: item.quantity + quantity }
                         : item
                 );
             }
-            return [...prev, { product, quantity }];
+            return [...prev, { product, quantity, options }];
         });
     };
 
-    const removeFromCart = (productId) => {
-        setCartItems(prev => prev.filter(item => item.product.id !== productId));
+    const removeFromCart = (productId, options = {}) => {
+        setCartItems(prev => prev.filter(item =>
+            !(item.product.id === productId && JSON.stringify(item.options) === JSON.stringify(options))
+        ));
     };
 
-    const updateQuantity = (productId, quantity) => {
+    const updateQuantity = (productId, quantity, options = {}) => {
         if (quantity < 1) return;
         setCartItems(prev => prev.map(item =>
-            item.product.id === productId ? { ...item, quantity } : item
+            (item.product.id === productId && JSON.stringify(item.options) === JSON.stringify(options))
+                ? { ...item, quantity }
+                : item
         ));
     };
 

@@ -1,8 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
-import { Send, X, Loader2, User as UserIcon } from 'lucide-react';
-import api from '@/utils/api';
-import { useAuth } from '@/context/AuthContext';
-import { motion, AnimatePresence } from 'framer-motion';
+import { getSocket } from '@/utils/socket';
 
 export default function ChatBox({ receiver, onClose }) {
     const { user } = useAuth();
@@ -15,10 +11,28 @@ export default function ChatBox({ receiver, onClose }) {
     useEffect(() => {
         if (receiver?.id) {
             fetchMessages();
-            const interval = setInterval(fetchMessages, 5000); // Polling for real-time feel
-            return () => clearInterval(interval);
+
+            const socket = getSocket();
+            const eventKey = `new_message:${user.id}`;
+
+            const handleNewMessage = (msg) => {
+                // Only add if it's from the person we're talking to or to them
+                if (msg.senderId === receiver.id || msg.receiverId === receiver.id) {
+                    setMessages(prev => {
+                        const exists = prev.find(m => m.id === msg.id);
+                        if (exists) return prev;
+                        return [...prev, msg];
+                    });
+                }
+            };
+
+            socket.on(eventKey, handleNewMessage);
+
+            return () => {
+                socket.off(eventKey, handleNewMessage);
+            };
         }
-    }, [receiver?.id]);
+    }, [receiver?.id, user.id]);
 
     useEffect(() => {
         scrollToBottom();

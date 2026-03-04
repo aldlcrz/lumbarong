@@ -23,3 +23,13 @@ exports.markNotificationsRead = async (req, res) => {
         res.status(500).json({ message: 'Server error', error: error.message });
     }
 };
+
+exports.getUnreadCount = async (req, res) => {
+    try {
+        const userId = req.user.id || req.user.userId;
+        const count = await Notification.count({ where: { userId, isRead: false } });
+        res.json({ count });
+    } catch (error) {
+        res.status(500).json({ message: 'Server error', error: error.message });
+    }
+};

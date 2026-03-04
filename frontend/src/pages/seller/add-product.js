@@ -5,7 +5,7 @@ import Navbar from '@/components/Navbar';
 import api from '@/utils/api';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { Upload, X, CheckCircle, Package, Tag, Layers, FileText, Info, PlusCircle, ArrowRight, AlertCircle, ArrowLeft, Store } from 'lucide-react';
+import { Upload, X, CheckCircle, Package, Tag, Layers, FileText, Info, PlusCircle, ArrowRight, AlertCircle, ArrowLeft, Store, Truck, Palette, Pen, Ruler } from 'lucide-react';
 
 export default function AddProduct() {
     const { user, loading: authLoading } = useAuth();
@@ -18,6 +18,10 @@ export default function AddProduct() {
         embroideryStyle: 'Traditional Calado',
         fabric: 'Piña-Seda Silk',
         stock: '',
+        shippingDays: '7',
+        colors: [],
+        designs: [],
+        sizes: [],
         images: []
     });
     const [categories, setCategories] = useState([]);
@@ -54,15 +58,24 @@ export default function AddProduct() {
         try {
             const res = await api.get(`/products/${id}`);
             const product = res.data;
+            const categoryValue = product.CategoryId || (typeof product.category === 'object' ? product.category.id : product.category);
+
             setFormData({
                 name: product.name,
                 description: product.description,
                 price: product.price,
-                category: product.CategoryId || product.category,
+                category: categoryValue,
                 embroideryStyle: product.embroideryStyle || 'Traditional Calado',
                 fabric: product.fabric || 'Piña-Seda Silk',
                 stock: product.stock,
-                images: product.images.map(img => img.url || img)
+                shippingDays: product.shippingDays || '7',
+                colors: Array.isArray(product.availableColors) ? product.availableColors : [],
+                designs: Array.isArray(product.availableDesigns) ? product.availableDesigns : [],
+                sizes: Array.isArray(product.availableSizes) ? product.availableSizes.map(s => s.size) : [],
+                images: (product.images || []).map(img => ({
+                    url: img.url || img,
+                    designName: img.designName || ''
+                }))
             });
         } catch (error) {
             setMessage({ type: 'error', text: 'Failed to load product for editing.' });
@@ -102,7 +115,7 @@ export default function AddProduct() {
             });
             setFormData(prev => ({
                 ...prev,
-                images: [...prev.images, res.data.url]
+                images: [...prev.images, { url: res.data.url, designName: '' }]
             }));
             setMessage({ type: '', text: '' });
         } catch (error) {
@@ -130,7 +143,11 @@ export default function AddProduct() {
 
         const payload = {
             ...formData,
-            categoryId: formData.category // Map category to categoryId for backend
+            categoryId: typeof formData.category === 'object' ? formData.category.id : formData.category,
+            availableColors: formData.colors,
+            availableDesigns: formData.designs,
+            sizes: formData.sizes,
+            shippingDays: parseInt(formData.shippingDays) || 7
         };
 
         setIsSubmitting(true);
@@ -203,12 +220,33 @@ export default function AddProduct() {
                             </h3>
 
                             <div className="grid grid-cols-2 gap-4 mb-6">
-                                {formData.images.map((img, i) => (
-                                    <div key={i} className="aspect-[3/4] rounded-2xl relative group overflow-hidden border border-gray-100 shadow-sm">
-                                        <img src={img || null} className="w-full h-full object-cover transition-transform group-hover:scale-110" />
-                                        <div className="absolute inset-x-0 bottom-0 bg-black/60 backdrop-blur-sm p-2">
-                                            <p className="text-[8px] font-black text-white uppercase tracking-widest text-center">{angleLabels[i]}</p>
+                                {formData.images.map((imgData, i) => (
+                                    <div key={i} className="aspect-[3/4] rounded-2xl relative group overflow-hidden border border-gray-100 shadow-sm bg-white">
+                                        <img src={imgData.url} className="w-full h-full object-cover transition-transform group-hover:scale-110" />
+
+                                        {/* Design Selector Overlay */}
+                                        <div className="absolute inset-x-0 bottom-0 bg-black/60 backdrop-blur-sm p-3 translate-y-full group-hover:translate-y-0 transition-transform">
+                                            <p className="text-[8px] font-black text-gray-300 uppercase tracking-widest mb-2">Assign Design</p>
+                                            <select
+                                                value={imgData.designName}
+                                                onChange={(e) => {
+                                                    const newImages = [...formData.images];
+                                                    newImages[i].designName = e.target.value;
+                                                    setFormData({ ...formData, images: newImages });
+                                                }}
+                                                className="w-full bg-white/10 text-white text-[10px] font-bold py-1 px-2 rounded-lg outline-none border border-white/20 focus:border-white transition-colors cursor-pointer"
+                                            >
+                                                <option value="" className="text-gray-900">General View (Default)</option>
+                                                {formData.designs.map((d, di) => (
+                                                    <option key={di} value={d} className="text-gray-900">{d}</option>
+                                                ))}
+                                            </select>
                                         </div>
+
+                                        <div className="absolute top-2 left-2 bg-black/40 backdrop-blur-md px-2 py-1 rounded-lg">
+                                            <p className="text-[8px] font-black text-white uppercase tracking-widest">{angleLabels[i]}</p>
+                                        </div>
+
                                         <button
                                             type="button"
                                             onClick={() => removeImage(i)}
@@ -360,6 +398,46 @@ export default function AddProduct() {
                                         </Field>
                                     </div>
 
+                                    {/* Shipping Days */}
+                                    <Field label="Shipping Days" icon={Truck}>
+                                        <input
+                                            name="shippingDays"
+                                            type="number"
+                                            min="1"
+                                            value={formData.shippingDays}
+                                            onChange={handleChange}
+                                            className="w-full bg-transparent outline-none font-bold text-gray-900 placeholder:text-gray-300"
+                                            placeholder="e.g. 7"
+                                        />
+                                    </Field>
+
+                                    {/* Available Sizes */}
+                                    <Field label="Available Sizes" icon={Ruler}>
+                                        <TagInput
+                                            tags={formData.sizes}
+                                            setTags={(newSizes) => setFormData({ ...formData, sizes: newSizes })}
+                                            placeholder="Press Enter to add size (e.g. XL)"
+                                        />
+                                    </Field>
+
+                                    {/* Available Colors */}
+                                    <Field label="Available Colors" icon={Palette}>
+                                        <TagInput
+                                            tags={formData.colors}
+                                            setTags={(newColors) => setFormData({ ...formData, colors: newColors })}
+                                            placeholder="Press Enter to add color (e.g. White)"
+                                        />
+                                    </Field>
+
+                                    {/* Available Designs */}
+                                    <Field label="Available Designs" icon={Pen}>
+                                        <TagInput
+                                            tags={formData.designs}
+                                            setTags={(newDesigns) => setFormData({ ...formData, designs: newDesigns })}
+                                            placeholder="Press Enter to add design (e.g. Floral)"
+                                        />
+                                    </Field>
+
                                     <div className="md:col-span-2">
                                         <Field label="The Artisan Story & Specs" icon={FileText}>
                                             <textarea
@@ -391,6 +469,50 @@ export default function AddProduct() {
                     </div>
                 </div>
             </main>
+        </div>
+    );
+}
+
+function TagInput({ tags, setTags, placeholder }) {
+    const [input, setInput] = useState('');
+
+    const handleKeyDown = (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            const value = input.trim();
+            if (value && !tags.includes(value)) {
+                setTags([...tags, value]);
+                setInput('');
+            }
+        } else if (e.key === 'Backspace' && !input && tags.length > 0) {
+            setTags(tags.slice(0, -1));
+        }
+    };
+
+    const removeTag = (index) => {
+        setTags(tags.filter((_, i) => i !== index));
+    };
+
+    return (
+        <div className="w-full">
+            <div className="flex flex-wrap gap-2 mb-2">
+                {tags.map((tag, i) => (
+                    <span key={i} className="flex items-center gap-1 px-3 py-1 bg-red-50 text-red-600 text-[10px] font-black uppercase tracking-widest rounded-full border border-red-100 group-tag">
+                        {tag}
+                        <button type="button" onClick={() => removeTag(i)} className="hover:text-black transition-colors">
+                            <X size={10} />
+                        </button>
+                    </span>
+                ))}
+            </div>
+            <input
+                type="text"
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={handleKeyDown}
+                className="w-full bg-transparent outline-none font-bold text-gray-900 placeholder:text-gray-300 text-sm"
+                placeholder={tags.length === 0 ? placeholder : "Add another..."}
+            />
         </div>
     );
 }

@@ -63,9 +63,9 @@ export default function SellerDashboard() {
                     </div>
                     <div className="flex items-center gap-3">
                         {liveUpdate && (
-                            <span className="flex items-center gap-1.5 bg-green-50 text-green-600 border border-green-200 text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full animate-pulse">
+                            <span className="flex items-center gap-1.5 bg-green-50 text-green-600 border border-green-200 text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full animate-pulse transition-all">
                                 <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span>
-                                New Order!
+                                Syncing...
                             </span>
                         )}
                         {loading && <div className="animate-spin text-red-600"><TrendingUp /></div>}

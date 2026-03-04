@@ -1,9 +1,9 @@
 import Link from 'next/link';
-import { useCart } from '@/context/CartContext';
-import { ShoppingCart, Eye } from 'lucide-react';
+import { ShoppingCart, Eye, Star } from 'lucide-react';
+import { useRouter } from 'next/router';
 
 export default function ProductCard({ product }) {
-    const { addToCart } = useCart();
+    const router = useRouter();
 
     return (
         <div className="bg-white rounded-[1rem] shadow-sm border border-gray-100 overflow-hidden card-hover">
@@ -29,18 +29,36 @@ export default function ProductCard({ product }) {
                 </div>
                 <p className="text-[10px] text-gray-500 font-medium line-clamp-1 mb-2">{product.description}</p>
 
-                <div className="flex items-center justify-between mt-auto">
-                    <div>
-                        <p className="text-[7px] text-gray-400 uppercase font-black tracking-widest mb-0.5">Artisan Price</p>
-                        <p className="text-base font-black text-red-600 leading-none">₱{product.price.toLocaleString()}</p>
+                <div className="flex items-center gap-1 mb-3">
+                    <div className="flex items-center text-amber-500">
+                        <Star size={10} fill="currentColor" />
                     </div>
-                    <button
-                        onClick={() => addToCart(product)}
-                        className="bg-gray-900 text-white p-2.5 rounded-lg hover:bg-black transition-all active:scale-95 shadow-lg shadow-gray-200"
-                        title="Add to Cart"
-                    >
-                        <ShoppingCart size={16} />
-                    </button>
+                    <span className="text-[10px] font-black text-gray-900">{Number(product.averageRating || 0).toFixed(1)}</span>
+                    <span className="text-[10px] text-gray-400 font-medium border-l border-gray-100 pl-1.5 ml-0.5">({product.totalRatings || 0})</span>
+                </div>
+
+                <div className="flex items-center justify-between mt-auto gap-2">
+                    <div className="flex-1">
+                        <p className="text-[7px] text-gray-400 uppercase font-black tracking-widest mb-0.5">Artisan Price</p>
+                        <p className="text-sm font-black text-red-600 leading-none">₱{product.price.toLocaleString()}</p>
+                    </div>
+                    <div className="flex gap-1.5">
+                        {/* Add to Cart → goes to product page to select options, then add to cart */}
+                        <button
+                            onClick={() => router.push(`/products/${product.id}`)}
+                            className="bg-red-50 text-red-600 p-2 rounded-lg hover:bg-red-100 transition-all active:scale-95 border border-red-100"
+                            title="Select Options & Add to Cart"
+                        >
+                            <ShoppingCart size={14} />
+                        </button>
+                        {/* Buy Now → goes to product page to select options, then buy now */}
+                        <button
+                            onClick={() => router.push(`/products/${product.id}`)}
+                            className="bg-gray-900 text-white px-3 py-2 rounded-lg hover:bg-black transition-all active:scale-95 text-[10px] font-black uppercase tracking-widest"
+                        >
+                            Buy Now
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>

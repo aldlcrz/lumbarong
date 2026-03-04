@@ -373,6 +373,7 @@ export default function MyOrders() {
     const [showReviewModal, setShowReviewModal] = useState(null);
     const [showReturnModal, setShowReturnModal] = useState(null);
     const [isLive, setIsLive] = useState(false);
+    const [newUpdateAlert, setNewUpdateAlert] = useState(false);
     const flashTimerRef = useRef(null);
 
     useEffect(() => {
@@ -382,8 +383,13 @@ export default function MyOrders() {
             const socket = getSocket();
             const eventKey = `order_update:${user.id}`;
 
-            const handleOrderUpdate = () => {
+            const handleOrderUpdate = (data) => {
                 fetchOrders();
+                if (data?.type === 'status_update') {
+                    setNewUpdateAlert(true);
+                    clearTimeout(flashTimerRef.current);
+                    flashTimerRef.current = setTimeout(() => setNewUpdateAlert(false), 5000);
+                }
             };
 
             socket.on(eventKey, handleOrderUpdate);
@@ -506,6 +512,27 @@ export default function MyOrders() {
                     <span className="text-sm font-black text-gray-600 group-hover:text-red-600 uppercase tracking-widest transition-colors">Back</span>
                 </button>
 
+                {/* Update Flash Alert */}
+                <AnimatePresence>
+                    {newUpdateAlert && (
+                        <motion.div
+                            initial={{ opacity: 0, y: -20, scale: 0.95 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            exit={{ opacity: 0, y: -20, scale: 0.95 }}
+                            className="mb-6 flex items-center gap-4 px-8 py-5 bg-green-600 text-white rounded-3xl shadow-2xl shadow-green-200"
+                        >
+                            <div className="w-3 h-3 bg-white rounded-full animate-ping flex-shrink-0" />
+                            <div>
+                                <p className="text-[10px] font-black uppercase tracking-widest opacity-80">Registry Synchronization</p>
+                                <p className="text-sm font-bold">Your order status has been updated in the Artisan Registry!</p>
+                            </div>
+                            <button onClick={() => setNewUpdateAlert(false)} className="ml-auto p-1 rounded-full hover:bg-white/20 transition-all">
+                                <XCircle size={16} />
+                            </button>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+
                 <header className="mb-12">
                     <p className="text-red-600 font-black text-[10px] uppercase tracking-[0.3em] mb-3">Customer Registry</p>
                     <div className="flex items-center gap-4 mb-2">
@@ -625,6 +652,11 @@ export default function MyOrders() {
                                                             </div>
                                                             <div className="flex-1 py-2">
                                                                 <p className="text-lg font-black text-gray-900 group-hover:text-red-600 transition-colors uppercase tracking-tight">{item.product?.name || 'Handcrafted Piece'}</p>
+                                                                <div className="flex flex-wrap gap-2 mb-3 mt-1">
+                                                                    {item.color && <span className="text-[8px] bg-red-50 text-red-600 px-2 py-0.5 rounded-full font-black uppercase border border-red-100 italic tracking-widest">Color: {item.color}</span>}
+                                                                    {item.size && <span className="text-[8px] bg-white text-gray-400 px-2 py-0.5 rounded-full font-black uppercase border border-gray-100 shadow-sm">Size: {item.size}</span>}
+                                                                    {item.design && <span className="text-[8px] bg-white text-gray-500 px-2 py-0.5 rounded-full font-black uppercase border border-gray-100 italic tracking-widest shadow-sm">Design: {item.design}</span>}
+                                                                </div>
                                                                 <p className="text-sm text-gray-500 font-medium mb-4 italic">₱{(item.price || 0).toLocaleString()} &times; {item.quantity || 1}</p>
                                                                 <div className="inline-flex items-center gap-2 px-3 py-1 bg-gray-50 rounded-full text-[8px] font-black text-gray-400 uppercase tracking-[0.1em]">
                                                                     Master Artisan Handcrafted

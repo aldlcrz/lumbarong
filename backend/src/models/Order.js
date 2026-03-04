@@ -73,6 +73,18 @@ const OrderItem = sequelize.define('OrderItem', {
         type: DataTypes.UUID,
         allowNull: false
     },
+    color: {
+        type: DataTypes.STRING,
+        allowNull: true
+    },
+    design: {
+        type: DataTypes.STRING,
+        allowNull: true
+    },
+    size: {
+        type: DataTypes.STRING,
+        allowNull: true
+    },
     isRated: {
         type: DataTypes.BOOLEAN,
         defaultValue: false

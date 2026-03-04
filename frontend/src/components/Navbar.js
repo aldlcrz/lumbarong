@@ -19,19 +19,52 @@ import {
     ShieldCheck,
     MessageSquare,
     Search,
-    ArrowLeft
+    ArrowLeft,
+    Bell
 } from 'lucide-react';
 import api from '@/utils/api';
 import { useRouter } from 'next/router';
+import { getSocket } from '@/utils/socket';
 
 export default function Navbar({ minimal = false }) {
     const [isMenuOpen, setIsMenuOpen] = React.useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [suggestions, setSuggestions] = useState([]);
     const [showSuggestions, setShowSuggestions] = useState(false);
+    const [notificationCount, setNotificationCount] = useState(0);
     const router = useRouter();
     const { user, logout } = useAuth();
     const { cartCount } = useCart();
+
+    // Fetch initial notification count
+    React.useEffect(() => {
+        if (user) {
+            fetchNotificationCount();
+
+            const socket = getSocket();
+            const countKey = `notification_count_update:${user.id}`;
+            const newKey = `new_notification:${user.id}`;
+
+            const handleUpdate = () => fetchNotificationCount();
+
+            socket.on(countKey, handleUpdate);
+            socket.on(newKey, handleUpdate);
+
+            return () => {
+                socket.off(countKey, handleUpdate);
+                socket.off(newKey, handleUpdate);
+            };
+        }
+    }, [user?.id]);
+
+    const fetchNotificationCount = async () => {
+        try {
+            const res = await api.get('/notifications/unread-count');
+            setNotificationCount(res.data.count);
+        } catch (err) {
+            console.error('Error fetching notifications:', err);
+        }
+    };
 
     // Debounced search
     React.useEffect(() => {
@@ -181,6 +214,15 @@ export default function Navbar({ minimal = false }) {
                             </Link>
                         )}
 
+                        <Link href="/notifications" className="relative group p-2 rounded-full hover:bg-gray-50 transition-colors">
+                            <Bell size={22} className="text-gray-900" />
+                            {notificationCount > 0 && (
+                                <span className="absolute top-0 right-0 bg-red-600 text-white text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center border-2 border-white animate-pulse">
+                                    {notificationCount}
+                                </span>
+                            )}
+                        </Link>
+
                         <div className="flex items-center gap-3 pl-2">
                             <div className="text-right hidden sm:block">
                                 <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1">Mabuhay!</p>
@@ -209,6 +251,14 @@ export default function Navbar({ minimal = false }) {
                             )}
                         </Link>
                     )}
+                    <Link href="/notifications" className="relative p-2">
+                        <Bell size={24} className="text-gray-900" />
+                        {notificationCount > 0 && (
+                            <span className="absolute top-0 right-0 bg-red-600 text-white text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center border-2 border-white">
+                                {notificationCount}
+                            </span>
+                        )}
+                    </Link>
                     <button className="p-2 text-gray-900" onClick={() => setIsMenuOpen(!isMenuOpen)} aria-label="Toggle menu">
                         {isMenuOpen ? <X size={28} /> : <Menu size={28} />}
                     </button>

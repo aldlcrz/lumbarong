@@ -240,7 +240,7 @@ function LandingView() {
             >
               <div className="aspect-[3/4] rounded-[3rem] bg-gray-200 overflow-hidden shadow-2xl rotate-3 scale-90 border-[12px] border-white z-20 relative">
                 <img
-                  src="https://images.unsplash.com/photo-1544441893-675973e31985?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80"
+                  src="https://thumbs.dreamstime.com/b/formal-shirt-national-dress-barong-tagalog-philippines-96812514.jpg?w=992"
                   className="w-full h-full object-cover"
                   alt="Traditional Barong"
                 />

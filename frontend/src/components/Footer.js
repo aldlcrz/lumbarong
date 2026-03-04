@@ -33,10 +33,6 @@ export default function Footer() {
                     <h4 className="text-[8px] font-black text-gray-900 uppercase tracking-[0.25em] mb-3">Legacy Support</h4>
                     <ul className="space-y-1.5">
                         <li className="group cursor-pointer">
-                            <span className="block text-sm font-bold text-gray-400 group-hover:text-red-600 transition-colors uppercase tracking-widest">Customer Care</span>
-                            <span className="block text-[9px] text-gray-300 font-medium italic mt-1 leading-none">Dedicated support for your heritage commissions</span>
-                        </li>
-                        <li className="group cursor-pointer">
                             <span className="block text-sm font-bold text-gray-400 group-hover:text-red-600 transition-colors uppercase tracking-widest">Privacy Policy</span>
                             <span className="block text-[9px] text-gray-300 font-medium italic mt-1 leading-none">Secure management of your registry data</span>
                         </li>

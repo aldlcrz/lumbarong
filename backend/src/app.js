@@ -33,9 +33,9 @@ const allowedOrigins = [
     'http://127.0.0.1:3000',
     'http://127.0.0.1:3001',
     'http://127.0.0.1:5000',
-    'http://192.168.100.5:3000',
-    'http://192.168.100.5:3001',
-    'http://192.168.100.5:5000',
+    'http://172.28.167.168:3000',
+    'http://172.28.167.168:3001',
+    'http://172.28.167.168:5000',
 ].filter(Boolean);
 app.use(cors({
     origin: (origin, callback) => {
@@ -51,18 +51,23 @@ app.use(cors({
 }));
 
 // Security Middleware (after CORS). Allow cross-origin so API works from frontend.
-app.use(helmet({
-    crossOriginResourcePolicy: { policy: 'cross-origin' },
-}));
+// app.use(helmet({
+//     crossOriginResourcePolicy: { policy: 'cross-origin' },
+// }));
+
+app.use((req, res, next) => {
+    console.log(`>>> [Incoming Request]: ${req.method} ${req.url}`);
+    next();
+});
 
 app.use(express.json());
 
 // Rate Limiting
-const limiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 1000 // limit each IP to 1000 requests per windowMs
-});
-app.use('/api/', limiter);
+// const limiter = rateLimit({
+//     windowMs: 15 * 60 * 1000, 
+//     max: 1000 
+// });
+// app.use('/api/', limiter);
 
 // Routes
 app.use('/api/v1/auth', authRoutes);
@@ -90,6 +95,20 @@ app.get('/api/v1/health', async (req, res) => {
 
 app.get('/', (req, res) => {
     res.send('LumBarong API is running...');
+});
+
+// Global Error Handler
+app.use((err, req, res, next) => {
+    console.error('!!! [Global Error Handler] Caught Error:', err);
+    const status = err.status || err.statusCode || 500;
+    const message = err.message || 'Internal Server Error';
+
+    // Always return JSON
+    res.status(status).json({
+        success: false,
+        message,
+        error: process.env.NODE_ENV === 'development' ? err : { name: err.name }
+    });
 });
 
 module.exports = app;

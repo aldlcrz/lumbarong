@@ -168,16 +168,21 @@ function OrderDetailModal({ order, onClose }) {
                             <Package size={12} className="text-red-600" /> Order Artifacts
                         </h4>
                         <div className="space-y-4 max-h-[500px] overflow-y-auto pr-4 no-scrollbar">
-                            {order.items.map((item, idx) => (
+                            {(order.items || []).map((item, idx) => (
                                 <div key={idx} className="flex gap-6 p-6 rounded-[2rem] border border-gray-50 hover:bg-gray-50 transition-all group bg-white shadow-sm hover:shadow-md">
                                     <div className="w-24 h-24 rounded-2xl overflow-hidden flex-shrink-0 border border-gray-100 shadow-inner">
                                         <img src={item.product?.images?.[0]?.url} className="w-full h-full object-cover transition-transform group-hover:scale-110" />
                                     </div>
                                     <div className="flex-1 py-1">
                                         <h5 className="text-lg font-black text-gray-900 group-hover:text-red-600 transition-colors uppercase tracking-tight mb-1">{item.product?.name}</h5>
-                                        <p className="text-[10px] font-black text-gray-300 uppercase tracking-widest mb-4 italic">Artisan Registry: {item.product?.id?.toString().slice(-6).toUpperCase() || 'N/A'}</p>
+                                        <p className="text-[10px] font-black text-gray-300 uppercase tracking-widest mb-2 italic">Artisan Registry: {item.product?.id?.toString().slice(-6).toUpperCase() || 'N/A'}</p>
+                                        <div className="flex flex-wrap gap-x-3 gap-y-1 mb-3">
+                                            {item.color && <span className="text-[9px] font-black text-red-600/60 uppercase tracking-tighter">Color: {item.color}</span>}
+                                            {item.design && <span className="text-[9px] font-black text-red-600/60 uppercase tracking-tighter">Design: {item.design}</span>}
+                                            {item.size && <span className="text-[9px] font-black text-red-600/60 uppercase tracking-tighter">Size: {item.size}</span>}
+                                        </div>
                                         <div className="flex justify-between items-center">
-                                            <p className="text-sm font-black text-gray-900 italic">₱{item.price.toLocaleString()} <span className="text-gray-400 font-medium ml-2 text-xs italic">&times; {item.quantity}</span></p>
+                                            <p className="text-sm font-black text-gray-900 italic">₱{(item.price || 0).toLocaleString()} <span className="text-gray-400 font-medium ml-2 text-xs italic">&times; {item.quantity}</span></p>
                                             <span className="text-[10px] font-bold text-gray-300 uppercase tracking-widest">Handcrafted</span>
                                         </div>
                                     </div>
@@ -195,6 +200,8 @@ function FeedbackViewModal({ order, onClose }) {
     if (!order) return null;
 
     const isReturnRequest = order.status === 'Return Requested';
+    // Return data is in the returnRequest association (not directly on order)
+    const returnReq = order.returnRequest || {};
 
     return (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
@@ -223,22 +230,32 @@ function FeedbackViewModal({ order, onClose }) {
                                 <h4 className="text-[10px] font-black text-red-600 uppercase tracking-widest">Return Reason</h4>
                             </div>
                             <p className="text-gray-700 font-medium italic leading-relaxed">
-                                {order.returnReason || 'No reason provided.'}
+                                {returnReq.reason || 'No reason provided.'}
                             </p>
                         </div>
 
-                        {order.returnProof && (
+                        {(returnReq.proofImages?.length > 0) && (
                             <div className="space-y-3">
                                 <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
                                     <FileVideo size={12} /> Evidence Attachment
                                 </h4>
-                                <div className="relative rounded-2xl overflow-hidden border border-gray-200 group bg-white p-2">
-                                    <img src={order.returnProof} className="w-full h-auto object-contain max-h-80 transition-transform group-hover:scale-105" />
-                                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                        <a href={order.returnProof} target="_blank" rel="noreferrer" className="p-4 bg-white rounded-full text-gray-900 shadow-2xl">
-                                            <ExternalLink size={24} />
-                                        </a>
-                                    </div>
+                                <div className="flex flex-wrap gap-3">
+                                    {(() => {
+                                        let imgs = returnReq.proofImages;
+                                        if (typeof imgs === 'string') {
+                                            try { imgs = JSON.parse(imgs); } catch (e) { imgs = []; }
+                                        }
+                                        return (Array.isArray(imgs) ? imgs : []).map((img, i) => (
+                                            <div key={i} className="relative rounded-2xl overflow-hidden border border-gray-200 group bg-white p-2 w-40 h-40">
+                                                <img src={img} className="w-full h-full object-contain transition-transform group-hover:scale-105" />
+                                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                                    <a href={img} target="_blank" rel="noreferrer" className="p-3 bg-white rounded-full text-gray-900 shadow-2xl">
+                                                        <ExternalLink size={18} />
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        ));
+                                    })()}
                                 </div>
                             </div>
                         )}
@@ -255,8 +272,13 @@ function FeedbackViewModal({ order, onClose }) {
                     </div>
                 ) : (
                     <div className="space-y-6 mb-10 max-h-[60vh] overflow-y-auto pr-4 no-scrollbar">
-                        {order.items.map((item, idx) => {
-                            const itemRating = order.ratings?.find(r => r.ProductId === item.productId);
+                        {(order.items || []).length === 0 && (
+                            <p className="text-gray-400 italic text-center py-8">No items found for this order.</p>
+                        )}
+                        {(order.items || []).map((item, idx) => {
+                            const itemRating = (order.ratings || []).find(r =>
+                                r.ProductId === (item.productId || item.ProductId)
+                            );
                             return (
                                 <div key={idx} className="bg-gray-50/50 rounded-[2rem] p-8 border border-gray-100 flex flex-col md:flex-row gap-8">
                                     <div className="w-20 h-28 shrink-0 rounded-2xl overflow-hidden border border-gray-200">
@@ -289,15 +311,29 @@ function FeedbackViewModal({ order, onClose }) {
                                                 <p className="text-sm text-gray-700 font-medium italic leading-relaxed mb-4">
                                                     "{itemRating.review || 'No comment provided.'}"
                                                 </p>
-                                                {itemRating.images?.length > 0 && (
-                                                    <div className="flex gap-2">
-                                                        {itemRating.images.map((img, i) => (
-                                                            <div key={i} className="w-16 h-16 rounded-lg overflow-hidden border border-gray-100">
-                                                                <img src={img} className="w-full h-full object-cover" />
-                                                            </div>
-                                                        ))}
-                                                    </div>
+                                                {itemRating.reviewer?.name && (
+                                                    <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-3">
+                                                        — {itemRating.reviewer.name}
+                                                    </p>
                                                 )}
+                                                {(() => {
+                                                    let imgs = itemRating.images;
+                                                    if (typeof imgs === 'string') {
+                                                        try { imgs = JSON.parse(imgs); } catch (e) { imgs = []; }
+                                                    }
+                                                    if (Array.isArray(imgs) && imgs.length > 0) {
+                                                        return (
+                                                            <div className="flex gap-2">
+                                                                {imgs.map((img, i) => (
+                                                                    <div key={i} className="w-16 h-16 rounded-lg overflow-hidden border border-gray-100">
+                                                                        <img src={img} className="w-full h-full object-cover" />
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        );
+                                                    }
+                                                    return null;
+                                                })()}
                                             </>
                                         ) : (
                                             <p className="text-sm text-gray-300 italic">User hasn't submitted a review for this item yet.</p>
@@ -342,11 +378,13 @@ export default function SellerOrders() {
             const socket = getSocket();
             const eventKey = `order_update:${user.id}`;
 
-            const handleOrderUpdate = () => {
+            const handleOrderUpdate = (data) => {
                 fetchOrders();
-                setNewOrderAlert(true);
-                clearTimeout(alertTimerRef.current);
-                alertTimerRef.current = setTimeout(() => setNewOrderAlert(false), 5000);
+                if (data?.type === 'new_order') {
+                    setNewOrderAlert(true);
+                    clearTimeout(alertTimerRef.current);
+                    alertTimerRef.current = setTimeout(() => setNewOrderAlert(false), 5000);
+                }
             };
 
             socket.on(eventKey, handleOrderUpdate);
@@ -665,7 +703,7 @@ export default function SellerOrders() {
                                                 <div className="flex justify-end gap-2">
                                                     {order.paymentMethod === 'GCash' && order.receiptImage && (
                                                         <button
-                                                            onClick={() => setAuditOrder(order)}
+                                                            onClick={(e) => { e.stopPropagation(); setAuditOrder(order); }}
                                                             className={`p-3 rounded-2xl transition-all shadow-xl ${order.isPaymentVerified ? 'bg-blue-600 text-white' : 'bg-amber-500 text-white shadow-amber-100'}`}
                                                             title={order.isPaymentVerified ? "View Receipt" : "Audit Payment Proof"}
                                                         >
@@ -674,7 +712,7 @@ export default function SellerOrders() {
                                                     )}
                                                     {(order.status === 'Completed' || order.status === 'Return Requested') && (
                                                         <button
-                                                            onClick={() => setViewFeedback(order)}
+                                                            onClick={(e) => { e.stopPropagation(); setViewFeedback(order); }}
                                                             className={`p-3 rounded-2xl transition-all shadow-xl ${order.status === 'Return Requested' ? 'bg-red-600 text-white' : 'bg-green-600 text-white'}`}
                                                             title={order.status === 'Return Requested' ? 'View Return Request' : 'View Client Review'}
                                                         >

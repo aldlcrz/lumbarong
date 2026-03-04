@@ -20,9 +20,9 @@ const allowedOrigins = [
     'http://127.0.0.1:3000',
     'http://127.0.0.1:3001',
     'http://127.0.0.1:5000',
-    'http://192.168.100.5:3000',
-    'http://192.168.100.5:3001',
-    'http://192.168.100.5:5000',
+    'http://172.28.167.168:3000',
+    'http://172.28.167.168:3001',
+    'http://172.28.167.168:5000',
 ].filter(Boolean);
 const io = new Server(server, {
     cors: {
@@ -34,6 +34,10 @@ const io = new Server(server, {
 
 // Make io accessible in controllers
 app.set('io', io);
+
+// Initialize notification helper with io
+const { setIO } = require('./src/utils/notificationHelper');
+setIO(io);
 
 io.on('connection', (socket) => {
     console.log('User connected:', socket.id);

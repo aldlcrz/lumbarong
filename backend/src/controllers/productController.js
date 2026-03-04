@@ -30,6 +30,28 @@ exports.getProducts = async (req, res) => {
 
         const currentUserId = req.user?.id || req.user?.userId;
         const products = await Product.findAll({
+            attributes: {
+                include: [
+                    [
+                        sequelize.literal(`(
+                            SELECT COUNT(*)
+                            FROM ProductRatings AS ratings
+                            WHERE
+                                ratings.ProductId = Product.id
+                        )`),
+                        'totalRatings'
+                    ],
+                    [
+                        sequelize.literal(`(
+                            SELECT COALESCE(AVG(rating), 0)
+                            FROM ProductRatings AS ratings
+                            WHERE
+                                ratings.ProductId = Product.id
+                        )`),
+                        'averageRating'
+                    ]
+                ]
+            },
             where: {
                 ...where,
                 ...(req.user && req.user.role === 'admin'
@@ -111,7 +133,7 @@ exports.createProduct = async (req, res) => {
             return res.status(403).json({ message: 'Your shop is pending approval. You cannot list products yet.' });
         }
 
-        let { images, name, sizes, description, price, stock, categoryId, category } = req.body;
+        let { images, name, sizes, description, price, stock, categoryId, category, shippingDays, availableColors, availableDesigns } = req.body;
 
         // Handle uploaded files from multer-storage-cloudinary
         if (req.files && req.files.length > 0) {
@@ -133,15 +155,25 @@ exports.createProduct = async (req, res) => {
             description,
             price: productPrice,
             stock: productStock,
-            CategoryId: categoryId || category, // Support both for now
-            sellerId
+            CategoryId: categoryId || category,
+            sellerId,
+            shippingDays: shippingDays ? parseInt(shippingDays) : 7,
+            availableColors: Array.isArray(availableColors) ? availableColors : [],
+            availableDesigns: Array.isArray(availableDesigns) ? availableDesigns : []
         }, { transaction: t });
 
-        // Add images
+        // Add images with design tagging
         if (images && images.length > 0) {
             await ProductImage.bulkCreate(
-                images.map(url => ({ url, ProductId: product.id })),
-                { transaction: t }
+                images.map(img => ({
+                    url: typeof img === 'string' ? img : img.url,
+                    designName: (typeof img === 'object' && img.designName) ? img.designName : null,
+                    ProductId: product.id
+                })),
+                {
+                    transaction: t,
+                    fields: ['url', 'designName', 'ProductId']
+                }
             );
         }
 
@@ -184,7 +216,7 @@ exports.updateProduct = async (req, res) => {
             return res.status(403).json({ message: 'Not authorized' });
         }
 
-        let { images, sizes, price, stock, categoryId, category, ...rest } = req.body;
+        let { images, sizes, price, stock, categoryId, category, availableColors, availableDesigns, fabric, embroideryStyle, shippingDays, name, description } = req.body;
 
         // Handle uploaded files
         if (req.files && req.files.length > 0) {
@@ -192,19 +224,58 @@ exports.updateProduct = async (req, res) => {
             images = Array.isArray(images) ? [...images, ...uploadedUrls] : uploadedUrls;
         }
 
-        const updateData = { ...rest };
+        const updateData = {};
+        if (name !== undefined) updateData.name = name;
+        if (description !== undefined) updateData.description = description;
         if (price !== undefined) updateData.price = parseFloat(price);
         if (stock !== undefined) updateData.stock = parseInt(stock);
-        if (categoryId !== undefined) updateData.CategoryId = categoryId;
-        else if (category !== undefined) updateData.CategoryId = category;
+
+        // Ensure CategoryId is not an object
+        const finalCategoryId = categoryId || category;
+        if (finalCategoryId !== undefined) {
+            updateData.CategoryId = typeof finalCategoryId === 'object' ? finalCategoryId.id : finalCategoryId;
+        }
+
+        if (fabric !== undefined) updateData.fabric = fabric;
+        if (embroideryStyle !== undefined) updateData.embroideryStyle = embroideryStyle;
+        if (shippingDays !== undefined) updateData.shippingDays = parseInt(shippingDays);
+        if (availableColors !== undefined) updateData.availableColors = availableColors;
+        if (availableDesigns !== undefined) updateData.availableDesigns = availableDesigns;
 
         await product.update(updateData, { transaction: t });
 
         if (images) {
+            const imagesForBulk = images.map((img, index) => {
+                const url = typeof img === 'string' ? img : img.url;
+                let designName = null;
+
+                if (typeof img === 'object' && img.designName) {
+                    const trimmed = img.designName.trim();
+                    if (trimmed !== '') {
+                        designName = trimmed;
+                    }
+                }
+
+                console.log(`DEBUG: Image[${index}] processing:`, {
+                    input: typeof img === 'object' ? img.designName : 'string-type',
+                    result: designName
+                });
+
+                return {
+                    url,
+                    designName,
+                    ProductId: product.id
+                };
+            });
+
+            console.log('DEBUG: Images for bulkCreate final check:', JSON.stringify(imagesForBulk, null, 2));
+
             await ProductImage.destroy({ where: { ProductId: product.id }, transaction: t });
             await ProductImage.bulkCreate(
-                images.map(url => ({ url, ProductId: product.id })),
-                { transaction: t }
+                imagesForBulk,
+                {
+                    transaction: t
+                }
             );
         }
 
@@ -223,8 +294,14 @@ exports.updateProduct = async (req, res) => {
         res.json(updatedProduct);
     } catch (error) {
         if (t) await t.rollback();
-        console.error('Error in updateProduct:', error);
-        res.status(500).json({ message: 'Server error', error: error.message });
+        console.error('CRITICAL: Error in updateProduct:', error);
+        if (error.stack) console.error(error.stack);
+        console.error('Request Body Snippet:', { ...req.body, images: req.body.images?.length });
+        res.status(500).json({
+            message: 'Server error updating masterpiece',
+            error: error.message,
+            stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+        });
     }
 };
 
@@ -291,6 +368,15 @@ exports.updateStock = async (req, res) => {
 
         product.stock = stock;
         await product.save();
+
+        const io = req.app.get('io');
+        if (io) {
+            io.to(`product_${product.id}`).emit('product_update', {
+                productId: product.id,
+                stock: product.stock
+            });
+        }
+
         res.json(product);
     } catch (error) {
         console.error('Error in updateStock:', error);
